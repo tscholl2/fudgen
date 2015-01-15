@@ -8,9 +8,9 @@
 
 ###Steps:
 
-1) Write code to import SR27 into sqlite
-2) Write recipe grammer rules
-3) Understand/implement db queries
-4) Determine search parameters
+1. Write code to import SR27 into sqlite
+2. Write recipe grammer rules
+3. Understand/implement db queries
+4. Determine search parameters
 
 Hope you can help!

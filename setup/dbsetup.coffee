@@ -221,7 +221,6 @@ relations =
 main = () ->
 	#run all db queries in serial, this is sticky so will last
 	db.serialize()
-	db.run 'PRAGMA synchronous=OFF' #for speed?
 
 	#load tables
 	console.log '...loading tables...'
@@ -261,6 +260,7 @@ main = () ->
 		lazy
 		.on 'pipe', () ->
 			bar.tick bar.total - bar.curr
+			bar.terminate()
 			return loadFile()
 		.lines
 		.forEach (l) ->

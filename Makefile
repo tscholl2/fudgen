@@ -24,6 +24,7 @@ $(ZIP):
 $(SOURCE): $(ss)
 
 $(ss): $(ZIP)
+	mkdir -p $(DATA_DIR)
 	unzip $(ZIP) -d $(DATA_DIR)
 	touch $(ss)
 

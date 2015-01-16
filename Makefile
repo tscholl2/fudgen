@@ -21,11 +21,11 @@ $(DB): $(SOURCE)
 $(ZIP):
 	wget -O $(ZIP) https://www.ars.usda.gov/SP2UserFiles/Place/12354500/Data/SR27/dnload/sr27asc.zip
 	
-$(SOURCE): $(source)
+$(SOURCE): $(ss)
 
 $(ss): $(ZIP)
 	unzip $(ZIP) -d $(DATA_DIR)
-	touch $(source)
+	touch $(ss)
 
 rebuild:
 	$(RM) $(DB)

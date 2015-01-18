@@ -1,7 +1,6 @@
 fs = require 'fs'
 sqlite3 = require 'sqlite3'
 Lazy = require 'lazy'
-ProgressBar = require 'progress'
 
 db = new sqlite3.Database '../data/db'
 
@@ -246,31 +245,18 @@ main = () ->
 			return
 		#gather file
 		f = files.pop()
-		#set up progress
-		current = 0
-		bar = new ProgressBar "#{f} (#{n - files.length}/#{n}) [:bar] :percent :current/:total (:elapsed) :etas", {
-			complete: '\u001b[32m=\u001b[0m'
-			incomplete: '.'
-			total: fs.statSync(getPath(f)).size
-		}
-		bar.tick 0
+		console.log "loading file #{f} size=#{fs.statSync(getPath(f)).size}"
 		#initialize sql cmds
 		stmt = db.prepare "INSERT INTO #{f} VALUES (#{('?' for i in columns[f]).join(',')})"
 		lazy = new Lazy fs.createReadStream getPath(f), {encoding:'utf8'}
 		lazy
 		.on 'pipe', () ->
-			bar.tick bar.total - bar.curr
-			bar.terminate()
 			return loadFile()
 		.lines
 		.forEach (l) ->
 			if l.length > 0
 				#insert data
 				stmt.run (cleanField(f) for f in l.toString().split('^'))
-			#track progress
-			current += l.length+1
-			if (current - bar.curr) > 8000 or current == bar.total #keeps from blinking because so fast
-				bar.tick current - bar.curr
 	#start loads
 	loadFile()
 

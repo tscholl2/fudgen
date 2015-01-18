@@ -239,22 +239,30 @@ main = () ->
 		
 	#import files synchronously
 	console.log '...importing files...'
-	n = files.length
 	loadFile = () ->
+		#check if any files left
 		if files.length == 0
 			return
 		#gather file
 		f = files.pop()
-		console.log "loading file #{f} size=#{fs.statSync(getPath(f)).size}"
+		console.log "loading file #{f} size=#{fs.statSync(getPath(f)).size} could take a while..."
+		number_lines = 0
 		#initialize sql cmds
+		db.run 'BEGIN TRANSACTION'
 		stmt = db.prepare "INSERT INTO #{f} VALUES (#{('?' for i in columns[f]).join(',')})"
 		lazy = new Lazy fs.createReadStream getPath(f), {encoding:'utf8'}
 		lazy
-		.on 'pipe', () ->
-			return loadFile()
+		.on 'end', () ->
+			db.run 'END TRANSACTION', () ->
+				loadFile()
 		.lines
 		.forEach (l) ->
 			if l.length > 0
+				number_lines += 1
+				if number_lines > 1000
+					number_lines = 0
+					db.run 'END TRANSACTION'
+					db.run 'BEGIN TRANSACTION'
 				#insert data
 				stmt.run (cleanField(f) for f in l.toString().split('^'))
 	#start loads

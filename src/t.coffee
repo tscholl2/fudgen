@@ -3,18 +3,42 @@ sqlite3 = require 'sqlite3'
 db = new sqlite3.Database '../data/db'
 
 randomFood = (callback) ->
-	db.get "
-	SELECT FOOD_DES.*,'^^',FOOTNOTE.*,'^^',NUT_DATA.*,'^^',WEIGHT.*,'^^',FD_GROUP.*,'^^',LANGUAL.*,'^^',LANGDESC.*,'^^',NUTR_DEF.* FROM FOOD_DES
-	LEFT JOIN FOOTNOTE ON FOOD_DES.NDB_No=FOOTNOTE.NDB_No
-	LEFT JOIN NUT_DATA ON FOOD_DES.NDB_No=NUT_DATA.NDB_No
-	LEFT JOIN WEIGHT ON FOOD_DES.NDB_No=WEIGHT.NDB_No
-	LEFT JOIN FD_GROUP ON FOOD_DES.FdGrp_Cd=FD_GROUP.FdGrp_Cd
-	LEFT JOIN LANGUAL ON FOOD_DES.NDB_No=LANGUAL.NDB_No
-	LEFT JOIN LANGDESC ON LANGUAL.Factor_Code=LANGDESC.Factor_Code
-	LEFT JOIN NUTR_DEF ON NUT_DATA.Nutr_No=NUTR_DEF.Nutr_No
-	WHERE FOOD_DES.rowid = (ABS(RANDOM()) % (SELECT MAX(FOOD_DES.rowid)+1 FROM FOOD_DES));
-	", callback
+	output = {}
+	db.get "select * from FOOD_DES where rowid = (abs(random()) % (select max(rowid)+1 from FOOD_DES))", (e,row) ->
+	#db.get "select * from FOOD_DES where NDB_No='02001'", (e,row) -> #for testing
+		if e?
+			return callback? e
+		output.FOOD_DES = row
+		db.all "select * from FOOTNOTE where NDB_No=?", output.FOOD_DES.NDB_No, (e,rows) ->
+			if e?
+				return callback? e
+			output.FOOTNOTE = rows
+			db.all "select * from NUT_DATA where NDB_No=?", output.FOOD_DES.NDB_No, (e,rows) ->
+				if e?
+					return callback? e
+				output.NUT_DATA = rows
+				db.all "select * from WEIGHT where NDB_No=?",output.FOOD_DES.NDB_No, (e,rows) ->
+					if e?
+						return callback? e
+					output.WEIGHT = rows
+					db.all "select * from FD_GROUP where FdGrp_Cd=?",output.FOOD_DES.FdGrp_Cd, (e,rows) ->
+						if e?
+							return callback? e
+						output.FD_GROUP = rows
+						db.all "select * from LANGUAL where NDB_No=?",output.FOOD_DES.NDB_No, (e,rows) ->
+							if e?
+								return callback? e
+							output.LANGUAL = rows
+							db.all "select * from LANGDESC where Factor_Code in (#{('\''+r.Factor_Code+'\'' for r in output.LANGUAL).join(',')})", (e,rows) ->
+								if e?
+									return callback? e
+								output.LANGDESC = rows
+								db.all "select * from NUTR_DEF where Nutr_No in (#{('\''+r.Nutr_No+'\'' for r in output.NUT_DATA).join(',')})", (e,rows) ->
+									if e?
+										return callback? e
+									output.NUTR_DEF = rows
+									return callback? null, output
 
-randomFood (e,row) ->
-	console.log e
-	console.log row
+
+randomFood (e,food) ->
+	console.log food

@@ -5,6 +5,7 @@ Lazy = require 'lazy'
 db = new sqlite3.Database '../data/db'
 
 cleanField = (raw) ->
+	raw = raw.trim()
 	if raw.length > 1 and raw[0] == '~' and raw[raw.length-1] == '~'
 		return raw.substr 1, raw.length-2
 	else
@@ -82,15 +83,15 @@ columns =
 			['Nutr_No',			'VARCHAR(3)']
 			['Footnt_Txt',		'VARCHAR(200) NOT NULL']
 		]
-	LANGDESC:
-		[
-			['Factor_Code',		'VARCHAR(5) NOT NULL']
-			['Description',		'VARCHAR(140) NOT NULL']
-		]
 	LANGUAL:
 		[
 			['NDB_No',			'VARCHAR(5) NOT NULL']
 			['Factor_Code',		'VARCHAR(5) NOT NULL']
+		]
+	LANGDESC:
+		[
+			['Factor_Code',		'VARCHAR(5) NOT NULL']
+			['Description',		'VARCHAR(140) NOT NULL']
 		]
 	NUT_DATA:
 		[

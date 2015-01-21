@@ -43,30 +43,58 @@ min = (arr) ->
 			m = a
 	return m
 
+timePast = (workers) ->
+	return min (sum(w) for w in workers)
+
+class Worker
+	constructor: ->
+		this.history = []
+		this.job = null
+	finish: ->
+		j = this.job
+		this.job = null
+		this.history.push j
+		return j
+
 task = (V,E,n=1) ->
-	E = (e for e in E) #copy input
-	Grev = {}
+	#initialize graph
+	G = {}
 	for v of V
-		Grev[v] = []
+		G[v] =
+			in: []
+			out: []
 	for e in E
-		Grev[e[1]].push e[0]
-	workers = ([] for i in [1..n])
-	totals = (0 for i in [1..n])
-	while not isEmpty Grev
-		#find doable nodes
-		S = (v for v,n of Grev when n.length == 0)
+		G[e[1]].in.push e[0]
+		G[e[0]].out.push e[1]
+	#initialize workers
+	workers = (new Worker() for i in [1..n])
+	workerSort = (a,b) ->
+		if not a.job?
+			return -1
+		if not b.job?
+			return 1
+		return V[a.job] < V[b.job]
+	#run scheduling
+	while not isEmpty G
+		#next worker finishes
+		v = workers[0].finish()		
+		#remove task
+		for w in G[v].out
+			G[w].in.splice G[w].in.indexOf(v), 1
+		delete G[v]	
+		#reorder workers
+		workers.sort workerSort
+		#find starting nodes
+		S = (v for v,n of G when n.in.length == 0)
+		#find available workers
+		W = (w for w in workers when w.job == null)
 		if S.length == 0
 			throw 'Cycle?!'
-		while S.length > 0
+		while S.length > 0 and W.length > 0
+			#assign task
 			v = S.pop()
-			i = totals.indexOf min totals
-			workers[i].push v
-			totals[i] += V[v]
-			delete Grev[v]
-			d = (e for e in E when e[0] == v)
-			for e in d
-				Grev[e[1]].splice Grev[e[1]].indexOf(e[0]), 1
-				E.splice E.indexOf(e), 1
+			w = W.pop()
+			w.job = v
 	return workers
 #
 #test

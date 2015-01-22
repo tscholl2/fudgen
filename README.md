@@ -8,9 +8,11 @@
 
 ###Steps:
 
-1. Write code to import SR27 into sqlite
-2. Write recipe grammer rules
-3. Understand/implement db queries
-4. Determine search parameters
+1. --Write code to import SR27 into sqlite--
+2. --Write basic scheduling program--
+3. --Finalize recipe formats--
+4. Write recipe parser
+5. Randomize parsed recipes
+6. Write `toString` for final recipe output
 
 Hope you can help!

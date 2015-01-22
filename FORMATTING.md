@@ -101,6 +101,12 @@ Ingredients are denoted on a new line by the plain
 description of the item. The `.quantity` attribute
 follows same rules as the `.time` for operations.
 
+There is an exception. The first line of any recipe
+should be the outcome or description. Also any
+components should be labeled with a description or
+title. This follows the recursive nature of a recipe
+and its components.
+
 Ingrediants can also have the `.random` attribute
 which should be a number between `0` and `100`.
 This represents how this ingredient should be

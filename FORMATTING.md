@@ -27,9 +27,9 @@ would be
 spaghetti
 	+mix
 		.5 min
-		pasta
+		-pasta
 			.1 box
-		sauce
+		-sauce
 			.15 oz
 ```
 Or maybe you want spaghetti from scratch
@@ -41,7 +41,7 @@ spaghetti
 			+boil
 				.8 min
 				.description 'Boil till aldente'
-				spaghetti noodles
+				-spaghetti noodles
 					.1 box
 		sauce
 			+saute
@@ -49,15 +49,15 @@ spaghetti
 				.setting medium
 				+smash
 					.10 min
-					tomatoes
+					-tomatoes
 						.1 lb
 				+mix
 					.10 min
-					oregano
+					-oregano
 						.4 tbl
-					salt
+					-salt
 						.1 tbl
-					pepper
+					-pepper
 						.1 tbl
 ```
 From this it's easy to see recipes are built out of

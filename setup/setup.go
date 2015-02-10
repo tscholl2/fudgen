@@ -74,9 +74,9 @@ func main() {
 		fk := schema.Relations[f]
 		cols := []string{}
 		for _, c := range schema.Columns[f] {
-			cols = append(cols, fmt.Sprintf("%s \t\t %s", c[0], c[1]))
+			cols = append(cols, fmt.Sprintf("%s\t\t%s", c[0], c[1]))
 		}
-		cmd := fmt.Sprintf("CREATE TABLE %s \n\t(", f)
+		cmd := fmt.Sprintf("CREATE TABLE %s\n\t(", f)
 		cmd += fmt.Sprintf("\n\t\t%s", strings.Join(cols, ",\n\t\t"))
 		if len(pk) > 0 {
 			cmd += fmt.Sprintf(",\n\t\tPRIMARY KEY\t(%s)", strings.Join(pk, ", "))
@@ -130,21 +130,12 @@ func main() {
 
 		//run over lines
 		for scanner.Scan() {
-			args := extractColumns(scanner.Text())
-			fmt.Println(args)
-			fmt.Println(len(args))
-			//
-			/*
-				WHAT IS GOING ON HERE????????????????????????
-
-				??????????????
-
-				????????????????????????
-
-				????????????????????????
-			*/
-			//
-			_, err = stmt.Exec(args)
+			vals := extractColumns(scanner.Text())
+			args := make([]interface{},len(vals))
+			for i, v := range vals {
+				args[i] = interface{}(v)
+			}
+			_, err = stmt.Exec(args...)
 			if err != nil {
 				fmt.Errorf("error: %v", err)
 				panic(err)

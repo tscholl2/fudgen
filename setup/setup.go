@@ -1,19 +1,38 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
 type T struct {
-	Files     []string `yaml:"files"`
+	Files     []string
 	Columns   map[string][][]string
 	Primary   map[string][]string
 	Relations map[string][][]string
+}
+
+func cleanField(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if len(raw) > 1 && raw[0] == "~"[0] && raw[len(raw)-1] == "~"[0] {
+		return string(raw[1 : len(raw)-1])
+	} else {
+		return raw
+	}
+}
+
+func extractColumns(line string) (output []string) {
+	output = strings.Split(line, "^")
+	for i := 0; i < len(output); i++ {
+		output[i] = cleanField(output[i])
+	}
+	return output
 }
 
 func main() {
@@ -32,12 +51,12 @@ func main() {
 	}
 
 	//remove old db
-	os.Remove("./db")
+	os.Remove("../data/db")
 
 	//connect to db
 	//see https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go
 	//and http://godoc.org/github.com/mattn/go-sqlite3#SQLiteConn.Begin
-	db, err := sql.Open("sqlite3", "./db")
+	db, err := sql.Open("sqlite3", "../data/db")
 	if err != nil {
 		fmt.Errorf("error: %v", err)
 		panic(err)
@@ -77,4 +96,64 @@ func main() {
 	}
 	tx.Commit()
 
+	//import files
+	for _, f := range schema.Files {
+		//open file
+		file, err := os.Open("../data/" + f + ".txt")
+		if err != nil {
+			fmt.Errorf("error: %v", err)
+			panic(err)
+		}
+
+		//setup line reading/db stuff
+		reader := bufio.NewReader(file)
+		scanner := bufio.NewScanner(reader)
+		tx, err := db.Begin()
+		if err != nil {
+			fmt.Errorf("error: %v", err)
+			panic(err)
+		}
+		fmt.Println("loading file %s could take a while...", f)
+
+		//build statement
+		stupid_variable_go_needs := make([]string, len(schema.Columns[f]))
+		for i := 0; i < len(stupid_variable_go_needs); i++ {
+			stupid_variable_go_needs[i] = "?"
+		}
+		insrt_cmd := fmt.Sprintf("INSERT INTO %s VALUES (%s)", f, strings.Join(stupid_variable_go_needs, ","))
+		fmt.Println(insrt_cmd)
+		stmt, err := tx.Prepare(insrt_cmd)
+		if err != nil {
+			fmt.Errorf("error: %v", err)
+			panic(err)
+		}
+
+		//run over lines
+		for scanner.Scan() {
+			args := extractColumns(scanner.Text())
+			fmt.Println(args)
+			fmt.Println(len(args))
+			//
+			/*
+				WHAT IS GOING ON HERE????????????????????????
+
+				??????????????
+
+				????????????????????????
+
+				????????????????????????
+			*/
+			//
+			_, err = stmt.Exec(args)
+			if err != nil {
+				fmt.Errorf("error: %v", err)
+				panic(err)
+			}
+		}
+
+		//cleanup
+		stmt.Close()
+		tx.Commit()
+		file.Close()
+	}
 }

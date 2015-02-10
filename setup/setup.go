@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 )
 
 type T struct {
@@ -97,54 +98,60 @@ func main() {
 	tx.Commit()
 
 	//import files
+	var wg sync.WaitGroup
 	for _, f := range schema.Files {
-		//open file
-		file, err := os.Open("../data/" + f + ".txt")
-		if err != nil {
-			fmt.Errorf("error: %v", err)
-			panic(err)
-		}
-
-		//setup line reading/db stuff
-		reader := bufio.NewReader(file)
-		scanner := bufio.NewScanner(reader)
-		tx, err := db.Begin()
-		if err != nil {
-			fmt.Errorf("error: %v", err)
-			panic(err)
-		}
-		fmt.Println("loading file %s could take a while...", f)
-
-		//build statement
-		stupid_variable_go_needs := make([]string, len(schema.Columns[f]))
-		for i := 0; i < len(stupid_variable_go_needs); i++ {
-			stupid_variable_go_needs[i] = "?"
-		}
-		insrt_cmd := fmt.Sprintf("INSERT INTO %s VALUES (%s)", f, strings.Join(stupid_variable_go_needs, ","))
-		fmt.Println(insrt_cmd)
-		stmt, err := tx.Prepare(insrt_cmd)
-		if err != nil {
-			fmt.Errorf("error: %v", err)
-			panic(err)
-		}
-
-		//run over lines
-		for scanner.Scan() {
-			vals := extractColumns(scanner.Text())
-			args := make([]interface{},len(vals))
-			for i, v := range vals {
-				args[i] = interface{}(v)
-			}
-			_, err = stmt.Exec(args...)
+		wg.Add(1)
+		go func() {
+			//open file
+			file, err := os.Open("../data/" + f + ".txt")
 			if err != nil {
 				fmt.Errorf("error: %v", err)
 				panic(err)
 			}
-		}
 
-		//cleanup
-		stmt.Close()
-		tx.Commit()
-		file.Close()
+			//setup line reading/db stuff
+			reader := bufio.NewReader(file)
+			scanner := bufio.NewScanner(reader)
+			tx, err := db.Begin()
+			if err != nil {
+				fmt.Errorf("error: %v", err)
+				panic(err)
+			}
+			fmt.Println("loading file %s...", f)
+
+			//build statement
+			stupid_variable_go_needs := make([]string, len(schema.Columns[f]))
+			for i := 0; i < len(stupid_variable_go_needs); i++ {
+				stupid_variable_go_needs[i] = "?"
+			}
+			insrt_cmd := fmt.Sprintf("INSERT INTO %s VALUES (%s)", f, strings.Join(stupid_variable_go_needs, ","))
+			stmt, err := tx.Prepare(insrt_cmd)
+			if err != nil {
+				fmt.Errorf("error: %v", err)
+				panic(err)
+			}
+
+			//run over lines
+			for scanner.Scan() {
+				vals := extractColumns(scanner.Text())
+				args := make([]interface{}, len(vals))
+				for i, v := range vals {
+					args[i] = interface{}(v)
+				}
+				_, err = stmt.Exec(args...)
+				if err != nil {
+					fmt.Errorf("error: %v", err)
+					panic(err)
+				}
+			}
+
+			//cleanup
+			stmt.Close()
+			tx.Commit()
+			file.Close()
+			wg.Done()
+		}()
+		wg.Wait()
+		fmt.Println("done loading files")
 	}
 }

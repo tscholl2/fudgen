@@ -4,6 +4,9 @@ data/
 #dont save temp stuff
 tmp/
 
+#or old stuff
+old/
+
 ##############
 #     Go     #
 ##############

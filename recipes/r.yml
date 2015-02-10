@@ -1,0 +1,15 @@
+name: spaghetti
+recipe:
+  -
+    name: mix
+    attributes:
+       - .5 min
+    ingrediants:
+      -
+        name: pasta
+        attributes:
+          - .1 box
+      -
+        name: sauce
+        attributes:
+          - .15 oz

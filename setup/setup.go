@@ -117,7 +117,7 @@ func main() {
 				fmt.Errorf("error: %v", err)
 				panic(err)
 			}
-			fmt.Println("loading file %s...", f)
+			fmt.Printf("loading file %s...", f)
 
 			//build statement
 			stupid_variable_go_needs := make([]string, len(schema.Columns[f]))
@@ -152,6 +152,5 @@ func main() {
 			wg.Done()
 		}()
 		wg.Wait()
-		fmt.Println("done loading files")
 	}
 }

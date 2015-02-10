@@ -4,14 +4,10 @@ ROOT = .
 DATA_DIR := $(ROOT)/data
 SETUP_DIR := $(ROOT)/setup
 
-#commands
-coffee := node_modules/coffee-script/bin/coffee
-
 #files
-SETUP_SCRIPT := dbsetup.coffee
+SETUP_SCRIPT := setup.go
 DB := $(DATA_DIR)/db
 SOURCE_NAMES := DATA_SRC DATSRCLN DERIV_CD FD_GROUP FOOD_DES FOOTNOTE LANGDESC LANGUAL NUT_DATA NUTR_DEF SRC_CD WEIGHT
-ns := node_modules/.npm-sentinal
 p := package.json
 SOURCE := $(addprefix $(DATA_DIR)/,$(addsuffix .txt,$(SOURCE_NAMES)))
 PDF := $(DATA_DIR)/sr27_doc.pdf
@@ -21,9 +17,10 @@ ss := $(DATA_DIR)/.source-sentinal
 
 build: $(DB)
 
-$(DB): $(SOURCE) $(ns)
+$(DB): $(SOURCE)
 	touch $(DB)
-	(cd setup; ../$(coffee) $(SETUP_SCRIPT))
+	@command -v go >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
+	(cd setup; go run $(SETUP_SCRIPT))
 
 $(ZIP):
 	mkdir -p $(DATA_DIR)
@@ -34,13 +31,6 @@ $(SOURCE): $(ss)
 $(ss): $(ZIP)
 	unzip $(ZIP) -d $(DATA_DIR)
 	touch $(ss)
-	
-$(ns): $(p)
-	@command -v npm >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
-	@command -v nodejs >/dev/null 2>&1 || { echo >&2 "I require nodejs but it's not installed.  Aborting."; exit 1; }
-	npm install
-	touch $(ns)
-
 	
 rebuild:
 	$(RM) -f $(DB)

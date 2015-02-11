@@ -8,9 +8,15 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
+
+//allows use of all cores
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+}
 
 type T struct {
 	Files     []string
@@ -117,7 +123,7 @@ func main() {
 				fmt.Errorf("error: %v", err)
 				panic(err)
 			}
-			fmt.Printf("loading file %s...", f)
+			fmt.Printf("loading file %s...\n", f)
 
 			//build statement
 			stupid_variable_go_needs := make([]string, len(schema.Columns[f]))

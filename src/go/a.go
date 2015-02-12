@@ -12,11 +12,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var str = string(b)
-	fmt.Println("read file: \n", str)
-	parsed, err := rparser.Parse(str)
+	parsed, err := rparser.Parse(string(b))
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(parsed)
 	fmt.Println(parsed.Name)
-	fmt.Println(parsed.Recipe[0].Attributes)
-	fmt.Println(parsed.Recipe[0].Ingrediants)
+	//fmt.Println(parsed.Ingrediants[0].Attributes)
+	//fmt.Println(parsed.Ingrediants[0].Ingrediants)
 }

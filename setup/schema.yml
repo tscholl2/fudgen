@@ -11,6 +11,7 @@ files:
   - NUTR_DEF
   - SRC_CD
   - WEIGHT
+  - RANKING
 columns:
   DATA_SRC:
     - - DataSrc_ID
@@ -168,6 +169,11 @@ columns:
       - INTEGER(3)
     - - Std_Dev
       - REAL(7.3)
+  RANKING:
+    - - NDB_No
+      - VARCHAR(5) NOT NULL
+    - - Google_Hits
+      - INTEGER
 primary:
   WEIGHT:
     - NDB_No
@@ -197,6 +203,8 @@ primary:
     - DataSrc_ID
   DATA_SRC:
     - DataSrc_ID
+  RANKING:
+    - NDB_No
 relations:
   FOOD_DES: []
   FOOTNOTE:
@@ -234,3 +242,6 @@ relations:
   DATA_SRC:
     - - DataSrc_ID
       - DATSRCLN
+  RANKING:
+    - - NDB_No
+      - FOOD_DES

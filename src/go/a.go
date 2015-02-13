@@ -12,12 +12,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	parsed, err := rparser.Parse(string(b))
+	parsed, err := rparser.ParseYaml(string(b))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(parsed)
-	fmt.Println(parsed.Name)
-	//fmt.Println(parsed.Ingrediants[0].Attributes)
-	//fmt.Println(parsed.Ingrediants[0].Ingrediants)
+	fmt.Println(rparser.ScheduleSteps(&parsed, 1))
+	fmt.Println(rparser.ListSteps(&parsed))
+	fmt.Println(rparser.GetDependencies(&parsed))
 }

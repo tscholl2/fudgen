@@ -1,28 +1,28 @@
 package schedular
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 )
 
 //worker class
 type WorkerHistory struct {
-	job  string
+	job  int
 	time int
 }
 type Worker struct {
-	job     string
+	job     int
 	time    int
 	history []WorkerHistory
 }
 
-func (w *Worker) assign(job string, time int) {
+func (w *Worker) assign(job int, time int) {
 	w.job = job
 	w.time = time
 }
-func (w *Worker) finish() string {
+func (w *Worker) finish() int {
 	job := w.job
-	w.job = ""
+	w.job = 0
 	w.time = 0
 	return job
 }
@@ -40,16 +40,16 @@ type Group []*Worker
 //worker group methods
 func (G *Group) available() (H Group) {
 	for _, g := range *G {
-		if (*g).job == "" {
+		if (*g).job == 0 {
 			H = append(H, g)
 		}
 	}
 	return
 }
-func (G *Group) next() (finished []string) {
+func (G *Group) next() (finished []int) {
 	var t int = (*(*G)[0]).time
 	for _, g := range *G {
-		if (*g).job != "" {
+		if (*g).job != 0 {
 			if (*g).time < t {
 				t = (*g).time
 			}
@@ -59,13 +59,13 @@ func (G *Group) next() (finished []string) {
 		(*g).work(t)
 	}
 	for _, g := range *G {
-		if (*g).time == 0 && (*g).job != "" {
+		if (*g).time == 0 && (*g).job != 0 {
 			finished = append(finished, (*g).finish())
 		}
 	}
 	return
 }
-func (G *Group) current(j string) bool {
+func (G *Group) current(j int) bool {
 	for _, g := range *G {
 		if (*g).job == j {
 			return true
@@ -75,7 +75,7 @@ func (G *Group) current(j string) bool {
 }
 func (G *Group) busy() bool {
 	for _, g := range *G {
-		if (*g).job != "" {
+		if (*g).job != 0 {
 			return true
 		}
 	}
@@ -93,11 +93,11 @@ func (G *Group) schedule() (h [][]WorkerHistory) {
 }
 
 type Vertex struct {
-	in  []string
-	out []string
+	in  []int
+	out []int
 }
 
-func index(arr []string, s string) (i int) {
+func index(arr []int, s int) (i int) {
 	for i < len(arr) {
 		if arr[i] == s {
 			return i
@@ -106,7 +106,7 @@ func index(arr []string, s string) (i int) {
 	}
 	return -1
 }
-func splice(arr []string, i int) []string {
+func splice(arr []int, i int) []int {
 	if i < 0 || i >= len(arr) {
 		return arr
 	}
@@ -119,9 +119,9 @@ func splice(arr []string, i int) []string {
 }
 
 // task algorithm
-func task(V map[string]int, E [][]string, n int) [][]WorkerHistory {
+func Schedule(V map[int]int, E [][]int, n int) [][]WorkerHistory {
 	// initialize graph
-	graph := make(map[string]*Vertex)
+	graph := make(map[int]*Vertex)
 	for v, _ := range V {
 		graph[v] = &Vertex{}
 	}
@@ -139,7 +139,7 @@ func task(V map[string]int, E [][]string, n int) [][]WorkerHistory {
 	//run scheduling
 	for len(graph) > 0 {
 
-		var S []string
+		var S []int
 		for v, _ := range V {
 			if e, ok := graph[v]; ok {
 				if len(e.in) == 0 && !workers.current(v) {
@@ -169,8 +169,10 @@ func task(V map[string]int, E [][]string, n int) [][]WorkerHistory {
 	return workers.schedule()
 }
 
+/*example
 func main() {
-	V := map[string]int{"a": 10, "b": 10, "c": 10, "d": 10, "e": 10}
-	E := [][]string{{"a", "b"}, {"b", "c"}, {"c", "d"}, {"c", "e"}, {"d", "e"}}
-	fmt.Println(task(V, E, 2))
+	V := map[int]int{1: 10, 2: 10, 3: 10, 4: 10, 5: 10}
+	E := [][]int{{1, 2}, {2, 4}, {2, 3}, {4, 5}, {3, 5}}
+	fmt.Println(Schedule(V, E, 2))
 }
+*/

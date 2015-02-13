@@ -1,0 +1,29 @@
+# Name    string   //name of food/recipe/step
+# Operation   string   //name of operation to make this step
+# Notes     string   //random notes to keep track of
+# Attributes  []string //list of things like quantity or time
+# Ingrediants []recipe //if empty then this is raw ingrediant
+name: grilled cheese
+operation: grill
+attributes:
+  - 10 min
+ingrediants:
+  -
+    name: butter
+    attributes:
+      - 1 stick
+  -
+    name: sandwich
+    operation: layer
+    attributes:
+      - 2 min
+    ingrediants:
+      -
+        name: bread
+        attributes:
+          - two slices
+        notes: use whole wheat
+      -
+        name: cheese
+        attributes:
+          - 15 oz

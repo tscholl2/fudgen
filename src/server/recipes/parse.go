@@ -1,4 +1,4 @@
-package rparser
+package recipes
 
 import (
 	"errors"
@@ -18,12 +18,13 @@ type recipe struct {
 }
 
 type Step struct {
-	Name        string   `json:"name"`
-	Operation   string   `json:"op"`
-	Attributes  []string `json:"attr"`
-	Notes       string   `json:"note"`
-	Identifier  int      `json:"id"`
-	Depedencies []int    `json:"deps"`
+	Name        string            `json:"name"`
+	Operation   string            `json:"op"`
+	Attributes  []string          `json:"attr"`
+	Data        map[string]string `json:"data"`
+	Notes       string            `json:"note"`
+	Identifier  int               `json:"id"`
+	Depedencies []int             `json:"deps"`
 }
 
 func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
@@ -72,6 +73,13 @@ func ParseYaml(input string) (steps []Step, err error) {
 		s.Depedencies = []int{}
 		for j := 0; j < len(rec.Ingrediants); j++ {
 			s.Depedencies = append(s.Depedencies, indexOfRecipe(&(rec.Ingrediants), &(rec.Ingrediants[j])))
+		}
+		//if raw ingrediant, look up info
+		if len(s.Depedencies) == 0 {
+			s.Data, err = FindFood(s.Name)
+			if err != nil {
+				return
+			}
 		}
 		steps = append(steps, s)
 	}

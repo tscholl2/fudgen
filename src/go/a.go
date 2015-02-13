@@ -17,7 +17,4 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(parsed)
-	fmt.Println(rparser.ScheduleSteps(&parsed, 1))
-	fmt.Println(rparser.ListSteps(&parsed))
-	fmt.Println(rparser.GetDependencies(&parsed))
 }

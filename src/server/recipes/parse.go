@@ -3,7 +3,9 @@ package recipes
 import (
 	"errors"
 	"gopkg.in/yaml.v2"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -71,23 +73,31 @@ func getTime(attr []string) int {
 }
 
 func getQuantitiy(step Step) (q float32) {
-	measurements := map[string]bool{
-		"cup":        true,
-		"can":        true,
-		"jar":        true,
-		"package":    true,
-		"ounce":      true,
-		"pound":      true,
-		"whole":      true,
-		"tablespoon": true,
-		"teaspoon":   true,
-		"pinch":      true,
-		"bunch":      true}
+	measurements := map[string]string{
+		"cup":        "cup",
+		"can":        "can",
+		"jar":        "jar",
+		"package":    "package",
+		"ounce":      "ounce",
+		"oz":         "ounce",
+		"pound":      "pound",
+		"whole":      "whole",
+		"tablespoon": "tbl",
+		"teaspoon":   "tsp",
+		"pinch":      "pinch",
+		"bunch":      "bunch"}
 	for _, s := range step.Attributes {
 		for k, _ := range measurements {
-			if n = strings.Index(s, k); n != -1 {
-				x := strconv.ParseFloat(s[:n])
-				return step.Data["amount"]
+			if n := strings.Index(s, k); n != -1 {
+				x, err := strconv.ParseFloat(s[:n], 32)
+				if err != nil {
+					panic(err)
+				}
+				y, err := strconv.ParseFloat(step.Data["Amount"], 32)
+				if err != nil {
+					panic(err)
+				}
+				return float32(x) * float32(y)
 			}
 		}
 	}
@@ -134,7 +144,7 @@ func ParseYaml(input string) (steps []Step, err error) {
 		}
 		//if raw ingrediant, look up info
 		if len(s.Depedencies) == 0 {
-			s.Data, err = FindFood(s.Name)
+			s.Data, err = findFood(s.Name)
 			if err != nil {
 				return
 			}

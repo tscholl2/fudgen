@@ -21,9 +21,4 @@ func main() {
 		fmt.Println(s)
 	}
 	fmt.Println("END STEPS=========")
-
-	//test queries
-	f, err := recipes.FindFood("butter, salted")
-	fmt.Println(err)
-	fmt.Println(f)
 }

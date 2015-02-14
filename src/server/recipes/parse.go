@@ -3,6 +3,7 @@ package recipes
 import (
 	"errors"
 	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 /*
@@ -34,6 +35,63 @@ func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
 		}
 	}
 	return -1
+}
+
+//returns time in seconds!
+func getTime(attr []string) int {
+	times := map[string]int{
+		"days": 3600 * 24,
+		"d":    3600 * 24,
+		"h":    3600,
+		"hr":   3600,
+		"hour": 3600,
+		"m":    60,
+		"min":  60,
+		"s":    1,
+		"sec":  1}
+	re, err := regexp.Compile(`[\d]+`)
+	if err != nil {
+		panic(err) //will never happen
+	}
+	for _, s := range attr {
+		for k, v := range times {
+			if strings.Index(s, k) != -1 {
+				n := re.FindString(s)
+				if n != "" {
+					t, err := strconv.Atoi(n)
+					if err != nil {
+						panic(err)
+					}
+					return t * v
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func getQuantitiy(step Step) (q float32) {
+	measurements := map[string]bool{
+		"cup":        true,
+		"can":        true,
+		"jar":        true,
+		"package":    true,
+		"ounce":      true,
+		"pound":      true,
+		"whole":      true,
+		"tablespoon": true,
+		"teaspoon":   true,
+		"pinch":      true,
+		"bunch":      true}
+	for _, s := range step.Attributes {
+		for k, _ := range measurements {
+			if n = strings.Index(s, k); n != -1 {
+				x := strconv.ParseFloat(s[:n])
+				return step.Data["amount"]
+			}
+		}
+	}
+	return 1
 }
 
 func ParseYaml(input string) (steps []Step, err error) {

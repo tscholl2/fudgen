@@ -30,6 +30,35 @@ type Step struct {
 	Depedencies []int             `json:"deps"`
 }
 
+var times map[string]int
+var measurements map[string]string
+
+func init() {
+	times = map[string]int{
+		"days": 3600 * 24,
+		"d":    3600 * 24,
+		"h":    3600,
+		"hr":   3600,
+		"hour": 3600,
+		"m":    60,
+		"min":  60,
+		"s":    1,
+		"sec":  1}
+	measurements = map[string]string{
+		"cup":        "cup",
+		"can":        "can",
+		"jar":        "jar",
+		"package":    "package",
+		"ounce":      "ounce",
+		"oz":         "ounce",
+		"pound":      "pound",
+		"whole":      "whole",
+		"tablespoon": "tbl",
+		"teaspoon":   "tsp",
+		"pinch":      "pinch",
+		"bunch":      "bunch"}
+}
+
 func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
 	for i := 0; i < len(*arr); i++ {
 		if &((*arr)[i]) == ptr {
@@ -41,16 +70,6 @@ func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
 
 //returns time in seconds!
 func getTime(attr []string) int {
-	times := map[string]int{
-		"days": 3600 * 24,
-		"d":    3600 * 24,
-		"h":    3600,
-		"hr":   3600,
-		"hour": 3600,
-		"m":    60,
-		"min":  60,
-		"s":    1,
-		"sec":  1}
 	re, err := regexp.Compile(`[\d]+`)
 	if err != nil {
 		panic(err) //will never happen
@@ -72,20 +91,7 @@ func getTime(attr []string) int {
 	return 0
 }
 
-func getQuantitiy(step Step) (q float32) {
-	measurements := map[string]string{
-		"cup":        "cup",
-		"can":        "can",
-		"jar":        "jar",
-		"package":    "package",
-		"ounce":      "ounce",
-		"oz":         "ounce",
-		"pound":      "pound",
-		"whole":      "whole",
-		"tablespoon": "tbl",
-		"teaspoon":   "tsp",
-		"pinch":      "pinch",
-		"bunch":      "bunch"}
+func getQuantitiy(step Step) float32 {
 	for _, s := range step.Attributes {
 		for k, _ := range measurements {
 			if n := strings.Index(s, k); n != -1 {

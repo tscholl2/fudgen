@@ -1,9 +1,49 @@
-# Name    string   //name of food/recipe/step
-# Operation   string   //name of operation to make this step
-# Notes     string   //random notes to keep track of
-# Attributes  []string //list of things like quantity or time
-# Ingrediants []recipe //if empty then this is raw ingrediant
-name: grilled cheese
+# type Quantity struct {
+#   Unit   string  `json:"unit"`
+#   Amount float64 `json:"amt"`
+# }
+
+# type Operation struct {
+#   Name     string   `json:"name"`
+#   Duration Quantity `json:"time"`
+#   Inputs   []int    `json:inputs`
+#   Ingrediants []Ingrediant
+# Requires []Operation
+#   Notes    string   `json:"notes"`
+# }
+
+# type Ingrediant struct {
+#   Name        string              `json:"name"`
+#   Nutrition   map[string]Quantity `json:"nutr"`
+#   Measurement Quantity            `json:"quant"`
+#   Notes       string              `json:"notes"`
+# }
+
+# type recipe struct {
+#   Ingrediant Ingrediant
+#   Operation  Operation
+#   Requires   []recipe //if empty then this is raw ingrediant
+# }
+Operation:
+  Name: grilled cheese
+  Duration:
+    Unit: min
+    Amount: 10
+Requires:
+  -
+    Operation:
+      Output: sandwich
+      Name: layer
+      Duration:
+        Unit: sec
+        Amount: 15
+      Ingrediants:
+        -
+
+
+
+
+  name: grilled cheese
 operation: grill
 attributes:
   - 10 min

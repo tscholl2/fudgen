@@ -1,9 +1,10 @@
 package recipes
 
 import (
+	"bufio"
 	"errors"
 	"gopkg.in/yaml.v2"
-	"regexp"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -12,28 +13,37 @@ import (
 see recipes/r.yml
 */
 
-type recipe struct {
-	Name        string   //name of food/recipe/step
-	Operation   string   //name of operation to make this step
-	Notes       string   //random notes to keep track of
-	Attributes  []string //list of things like quantity or time
-	Ingrediants []recipe //if empty then this is raw ingrediant
+type Quantity struct {
+	Unit   string  `json:"unit"`
+	Amount float64 `json:"amt"`
 }
 
-type Step struct {
-	Name        string            `json:"name"`
-	Operation   string            `json:"op"`
-	Attributes  []string          `json:"attr"`
-	Data        map[string]string `json:"data"`
-	Notes       string            `json:"note"`
-	Identifier  int               `json:"id"`
-	Depedencies []int             `json:"deps"`
+type Operation struct {
+	Name   string   `json:"name"`
+	Time   Quantity `json:"time"`
+	Output string   `json:"output"`
+	Inputs []int    `json:inputs`
+	Notes  string   `json:"notes"`
+}
+
+type Ingrediant struct {
+	Name        string              `json:"name"`
+	Nutrition   map[string]Quantity `json:"nutr"`
+	Measurement Quantity            `json:"quant"`
+	Notes       string              `json:"notes"`
+}
+
+type recipe struct {
+	Ingrediant Ingrediant
+	Operation  Operation
+	Requires   []recipe //if empty then this is raw ingrediant
 }
 
 var times map[string]int
 var measurements map[string]string
 
 func init() {
+	//all acceptable times
 	times = map[string]int{
 		"days": 3600 * 24,
 		"d":    3600 * 24,
@@ -44,19 +54,17 @@ func init() {
 		"min":  60,
 		"s":    1,
 		"sec":  1}
-	measurements = map[string]string{
-		"cup":        "cup",
-		"can":        "can",
-		"jar":        "jar",
-		"package":    "package",
-		"ounce":      "ounce",
-		"oz":         "ounce",
-		"pound":      "pound",
-		"whole":      "whole",
-		"tablespoon": "tbl",
-		"teaspoon":   "tsp",
-		"pinch":      "pinch",
-		"bunch":      "bunch"}
+	//load units from file
+	var measurements []string
+	file, err := os.Open("../../data/units.txt")
+	if err != nil {
+		panic(err)
+	}
+	reader := bufio.NewReader(file)
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		measurements = append(measurements, scanner.Text())
+	}
 }
 
 func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
@@ -66,48 +74,6 @@ func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
 		}
 	}
 	return -1
-}
-
-//returns time in seconds!
-func getTime(attr []string) int {
-	re, err := regexp.Compile(`[\d]+`)
-	if err != nil {
-		panic(err) //will never happen
-	}
-	for _, s := range attr {
-		for k, v := range times {
-			if strings.Index(s, k) != -1 {
-				n := re.FindString(s)
-				if n != "" {
-					t, err := strconv.Atoi(n)
-					if err != nil {
-						panic(err)
-					}
-					return t * v
-				}
-			}
-		}
-	}
-	return 0
-}
-
-func getQuantitiy(step Step) float32 {
-	for _, s := range step.Attributes {
-		for k, _ := range measurements {
-			if n := strings.Index(s, k); n != -1 {
-				x, err := strconv.ParseFloat(s[:n], 32)
-				if err != nil {
-					panic(err)
-				}
-				y, err := strconv.ParseFloat(step.Data["Amount"], 32)
-				if err != nil {
-					panic(err)
-				}
-				return float32(x) * float32(y)
-			}
-		}
-	}
-	return 1
 }
 
 func ParseYaml(input string) (steps []Step, err error) {

@@ -26,11 +26,22 @@ type T struct {
 }
 
 func cleanField(raw string) string {
-	raw = strings.TrimSpace(raw)
-	if len(raw) > 1 && raw[0] == "~"[0] && raw[len(raw)-1] == "~"[0] {
-		return string(raw[1 : len(raw)-1])
+	raw = strings.TrimSpace(raw) //remove extra spacing
+	var clean string = ""
+	for i := 0; i < len(raw); i++ {
+		switch raw[i] {
+		default:
+			clean += string(raw[i])
+		case 233: //remove non-ascii character é with ascii code 130, go code 233
+			clean += "e"
+		case 181: //remove non-ascii character µ with ascii code 230, go code 181
+			clean += "u"
+		}
+	}
+	if len(clean) > 1 && clean[0] == "~"[0] && clean[len(clean)-1] == "~"[0] {
+		return string(clean[1 : len(clean)-1])
 	} else {
-		return raw
+		return clean
 	}
 }
 

@@ -125,4 +125,6 @@ E = [
 	['d2','e2']
 ]
 
-console.log task V,E,3
+# console.log task V,E,3
+
+module.exports = task

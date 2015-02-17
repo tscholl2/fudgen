@@ -19,24 +19,45 @@ type Quantity struct {
 }
 
 type Operation struct {
-	Name   string   `json:"name"`
-	Time   Quantity `json:"time"`
-	Output string   `json:"output"`
-	Inputs []int    `json:inputs`
-	Notes  string   `json:"notes"`
+	Name     string   `json:"name"`
+	Id       int      `json:"id"`
+	Time     Quantity `json:"time"`
+	Requires []int    `json:inputs`
+	Notes    string   `json:"notes"`
 }
 
 type Ingrediant struct {
 	Name        string              `json:"name"`
+	Id          int                 `json:"id"`
 	Nutrition   map[string]Quantity `json:"nutr"`
 	Measurement Quantity            `json:"quant"`
 	Notes       string              `json:"notes"`
 }
 
-type recipe struct {
+type Step struct {
 	Ingrediant Ingrediant
 	Operation  Operation
-	Requires   []recipe //if empty then this is raw ingrediant
+}
+
+type PreRecipe struct {
+	Name        string      //name of food/recipe/step
+	Operation   string      //name of operation to make this step
+	Notes       string      //random notes to keep track of
+	Attributes  []string    //list of things like quantity or time
+	Ingrediants []PreRecipe //if empty then this is raw ingrediant
+}
+
+func (r *PreRecipe) getTime() Quantity {
+	if len((*r).Ingrediants) > 0 { //if raw foods
+		return Quantity{Amount: 0, Unit: "s"}
+	} else {
+		return Quantity{
+			Amount: (*s).Operation.Time.Amount * times[(*s).Operation.Time.Unit], //will crash if time unit not in the table!
+			Unit:   "s"}
+	}
+}
+func (r *PreRecipe) getQuantity() Quantity {
+	//TODO
 }
 
 var times map[string]int
@@ -77,14 +98,14 @@ func indexOfRecipe(arr *[]recipe, ptr *recipe) (i int) {
 }
 
 func ParseYaml(input string) (steps []Step, err error) {
-	var r recipe
+	var r PreRecipe
 	err = yaml.Unmarshal([]byte(input), &r)
 
 	//go through recipe collect steps
 	//and then
-	rs := []*recipe{}
-	var check func(*recipe)
-	check = func(R *recipe) {
+	rs := []*PreRecipe{}
+	var check func(*PreRecipe)
+	check = func(R *PreRecipe) {
 		rs = append(rs, R)
 		if len((*R).Ingrediants) == 0 && (*R).Operation != "" {
 			err = errors.New("can't have operation description on raw ingrediant")
@@ -102,7 +123,7 @@ func ParseYaml(input string) (steps []Step, err error) {
 	}
 
 	for i := 0; i < len(rs); i++ {
-		var rec recipe
+		var rec PreRecipe
 		rec = *(rs[i])
 		s := Step{}
 		s.Name = rec.Name

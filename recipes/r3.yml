@@ -1,29 +1,28 @@
-+# Name    string   //name of food/recipe/step
-+# Operation   string   //name of operation to make this step
-+# Notes     string   //random notes to keep track of
-+# Attributes  []string //list of things like quantity or time
-+# Ingrediants []recipe //if empty then this is raw ingrediant
-+name: grilled cheese
-+operation: grill
-+attributes:
-+  - 10 min
-+ingrediants:
-+  -
-+    name: butter
-+    attributes:
-+      - 1 stick
-+  -
-+    name: sandwich
-+    operation: layer
-+    attributes:
-+      - 2 min
-+    ingrediants:
-+      -
-+        name: bread
-+        attributes:
-+          - 2 slices
-+        notes: use whole wheat
-+      -
-+        name: cheese
-+        attributes:
-+          - 15 oz
+# type PreRecipe struct {
+#   Name        string      //name of food/recipe/step
+#   Operation   string      //name of operation to make this step, nil for ingrediants
+#   Notes       string      //random notes to keep track of
+#   Time        string      //length of step, nil for ingrediants
+#   Servings    float64     //number of servings of ingrediant
+#   Ingrediants []PreRecipe //if empty then this is raw ingrediant
+# }
+name: grilled cheese
+operation: grill
+time: 10 min
+notes: flip at some point
+ingrediants:
+  -
+    name: butter
+    servings: 0.25
+  -
+    name: sandwich
+    operation: layer
+    time: 2 min
+    ingrediants:
+      -
+        name: bread
+        servings: 2
+        notes: use whole wheat
+      -
+        name: cheese
+        servings: 3

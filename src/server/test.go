@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// read whole the file
-	b, err := ioutil.ReadFile("../../recipes/r2.yml")
+	b, err := ioutil.ReadFile("../../recipes/r3.yml")
 	if err != nil {
 		panic(err)
 	}

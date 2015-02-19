@@ -43,7 +43,7 @@ Requires:
 
 
 
-  name: grilled cheese
+name: grilled cheese
 operation: grill
 attributes:
   - 10 min

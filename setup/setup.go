@@ -13,9 +13,16 @@ import (
 	"sync"
 )
 
+var DATA_PATH string
+var DB_PATH string
+var SCHEMA_PATH string
+
 //allows use of all cores
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	DATA_PATH = "../data/"
+	SCHEMA_PATH = DATA_PATH + "schema.yml"
+	DB_PATH = DATA_PATH + "db"
 }
 
 type T struct {
@@ -56,7 +63,7 @@ func extractColumns(line string) (output []string) {
 func main() {
 	//load yaml
 	//see http://godoc.org/gopkg.in/yaml.v2
-	schema_file, err := ioutil.ReadFile("./schema.yml")
+	schema_file, err := ioutil.ReadFile(SCHEMA_PATH)
 	if err != nil {
 		fmt.Errorf("error: %v", err)
 		panic(err)
@@ -74,7 +81,7 @@ func main() {
 	//connect to db
 	//see https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go
 	//and http://godoc.org/github.com/mattn/go-sqlite3#SQLiteConn.Begin
-	db, err := sql.Open("sqlite3", "../data/db")
+	db, err := sql.Open("sqlite3", DB_PATH)
 	if err != nil {
 		fmt.Errorf("error: %v", err)
 		panic(err)
@@ -120,7 +127,7 @@ func main() {
 		wg.Add(1)
 		go func() {
 			//open file
-			file, err := os.Open("../data/" + f + ".txt")
+			file, err := os.Open(DATA_PATH + f + ".txt")
 			if err != nil {
 				fmt.Errorf("error: %v", err)
 				panic(err)

@@ -12,6 +12,7 @@ files:
   - SRC_CD
   - WEIGHT
   - RANKING
+  - COMMON
 columns:
   DATA_SRC:
     - - DataSrc_ID
@@ -174,6 +175,11 @@ columns:
       - VARCHAR(5) NOT NULL
     - - Google_Hits
       - INTEGER
+  COMMON:
+    - - NDB_No
+      - VARCHAR(5) NOT NULL
+    - - Com_Desc
+      - VARCHAR(255) NOT NULL
 primary:
   WEIGHT:
     - NDB_No
@@ -204,6 +210,8 @@ primary:
   DATA_SRC:
     - DataSrc_ID
   RANKING:
+    - NDB_No
+  COMMON:
     - NDB_No
 relations:
   FOOD_DES: []
@@ -243,5 +251,8 @@ relations:
     - - DataSrc_ID
       - DATSRCLN
   RANKING:
+    - - NDB_No
+      - FOOD_DES
+  COMMON:
     - - NDB_No
       - FOOD_DES

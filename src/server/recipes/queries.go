@@ -2,12 +2,26 @@ package recipes
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"strings"
 )
 
-func findNutrition(id string, msre string, quantity float32) (data map[string]string) {
+func randomize(name string, servings float64) (measurement Quantity, data map[string]string, nutrition map[string]Quantity, err error) {
+	//first find food
+	data, err = findFood(name)
+	if err != nil {
+		return
+	}
+	//find nutritional information
+	ndb_no := data["NDB_No"]
+	measurement, nutrition, err = findNutrition(ndb_no, servings)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func findNutrition(ndb_no string, servings float64) (measurement Quantity, nutrition map[string]Quantity, err error) {
 	//connect to db
 	db, err := sql.Open("sqlite3", "../../data/db")
 	if err != nil {
@@ -16,8 +30,19 @@ func findNutrition(id string, msre string, quantity float32) (data map[string]st
 	defer db.Close()
 
 	//search for food
-	sql := `select Msre_Desc,Amount,Gm_Wgt from WEIGHT where NDB_No=?`
-	rows, err := db.Query(sql, id)
+	sql := `
+	select
+		Msre_Desc,
+		Amount,
+		Gm_Wgt
+	from
+	(
+		select * WEIGHT where NDB_No=?
+	)
+	order by random()
+	limit 1
+	`
+	rows, err := db.Query(sql, ndb_no)
 	if err != nil {
 		return
 	}
@@ -26,9 +51,25 @@ func findNutrition(id string, msre string, quantity float32) (data map[string]st
 	//find matching unit
 	for rows.Next() {
 		var Msre_Desc string
-		var Amount float32
-		var Gm_Wgt float32
+		var Amount float64
+		var Gm_Wgt float64
 		rows.Scan(&Msre_Desc, &Amount, &Gm_Wgt)
+
+		//record measurement
+		measurement.Amount = servings * Amount
+		measurement.Unit = Msre_Desc
+
+		//find number of grams
+		grams := Gm_Wgt * servings
+
+		//collect nurtition information
+		sql = `
+			select
+				nutr_no,
+				nutr_val,
+
+		`
+
 		//check for match
 		if strings.Index(Msre_Desc, msre) != -1 {
 			grams := quantity * Gm_Wgt / 100.0

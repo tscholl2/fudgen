@@ -6,50 +6,56 @@ import (
 )
 
 //worker class
-type WorkerHistory struct {
-	job  int
+type workerHistory struct {
+	job  interface{}
 	time int
 }
-type Worker struct {
-	job     int
+type worker struct {
+	job     interface{}
 	time    int
-	history []WorkerHistory
+	history []workerHistory
 }
 
-func (w *Worker) assign(job int, time int) {
+func (w *worker) assign(job interface{}, time int) {
 	w.job = job
 	w.time = time
 }
-func (w *Worker) finish() int {
+func (w *worker) finish() interface{} {
 	job := w.job
-	w.job = 0
+	w.job = nil
 	w.time = 0
 	return job
 }
-func (w *Worker) work(t int) {
+func (w *worker) work(t int) {
 	w.time = int(math.Max(float64(w.time-t), 0))
 	if (len(w.history) > 0) && w.history[len(w.history)-1].job == w.job {
 		w.history[len(w.history)-1].time += t
 	} else {
-		w.history = append(w.history, WorkerHistory{w.job, t})
+		w.history = append(w.history, workerHistory{w.job, t})
 	}
 }
 
-type Group []*Worker
+type Group []*worker
 
 //worker group methods
 func (G *Group) available() (H Group) {
 	for _, g := range *G {
-		if (*g).job == 0 {
+		if (*g).job == nil {
 			H = append(H, g)
 		}
 	}
 	return
 }
-func (G *Group) next() (finished []int) {
-	var t int = (*(*G)[0]).time
+func (G *Group) next() (finished []interface{}) {
+	var t int = 0
 	for _, g := range *G {
-		if (*g).job != 0 {
+		if (*g).job != nil {
+			t = (*g).time
+			break
+		}
+	}
+	for _, g := range *G {
+		if (*g).job != nil {
 			if (*g).time < t {
 				t = (*g).time
 			}
@@ -59,13 +65,13 @@ func (G *Group) next() (finished []int) {
 		(*g).work(t)
 	}
 	for _, g := range *G {
-		if (*g).time == 0 && (*g).job != 0 {
+		if (*g).time == 0 && (*g).job != nil {
 			finished = append(finished, (*g).finish())
 		}
 	}
 	return
 }
-func (G *Group) current(j int) bool {
+func (G *Group) current(j interface{}) bool {
 	for _, g := range *G {
 		if (*g).job == j {
 			return true
@@ -81,9 +87,9 @@ func (G *Group) busy() bool {
 	}
 	return false
 }
-func (G *Group) schedule() (h [][]WorkerHistory) {
+func (G *Group) schedule() (h [][]workerHistory) {
 	for _, g := range *G {
-		h = append(h, []WorkerHistory{})
+		h = append(h, []workerHistory{})
 		i := len(h) - 1
 		for _, m := range (*g).history {
 			h[i] = append(h[i], m)
@@ -93,11 +99,11 @@ func (G *Group) schedule() (h [][]WorkerHistory) {
 }
 
 type Vertex struct {
-	in  []int
-	out []int
+	in  []interface{}
+	out []interface{}
 }
 
-func index(arr []int, s int) (i int) {
+func index(arr []interface{}, s interface{}) (i int) {
 	for i < len(arr) {
 		if arr[i] == s {
 			return i
@@ -106,7 +112,7 @@ func index(arr []int, s int) (i int) {
 	}
 	return -1
 }
-func splice(arr []int, i int) []int {
+func splice(arr []interface{}, i int) []interface{} {
 	if i < 0 || i >= len(arr) {
 		return arr
 	}
@@ -119,9 +125,12 @@ func splice(arr []int, i int) []int {
 }
 
 // task algorithm
-func Schedule(V map[int]int, E [][]int, n int) [][]WorkerHistory {
+//V is map of vertices ---> time it takes to complete
+//E is array of tuples {v1,v2} representing arrow v1 --> v2
+//n is number of workers available
+func scheduleGraph(V map[interface{}]int, E [][]interface{}, n int) [][]workerHistory {
 	// initialize graph
-	graph := make(map[int]*Vertex)
+	graph := make(map[interface{}]*Vertex)
 	for v, _ := range V {
 		graph[v] = &Vertex{}
 	}
@@ -130,16 +139,16 @@ func Schedule(V map[int]int, E [][]int, n int) [][]WorkerHistory {
 		(*graph[e[0]]).out = append((*graph[e[0]]).out, e[1])
 	}
 
-	// initialize workere
+	// initialize workers
 	workers := make(Group, n)
 	for i := 0; i < n; i++ {
-		workers[i] = &Worker{}
+		workers[i] = &worker{}
 	}
 
 	//run scheduling
 	for len(graph) > 0 {
 
-		var S []int
+		var S []interface{}
 		for v, _ := range V {
 			if e, ok := graph[v]; ok {
 				if len(e.in) == 0 && !workers.current(v) {
@@ -169,10 +178,59 @@ func Schedule(V map[int]int, E [][]int, n int) [][]WorkerHistory {
 	return workers.schedule()
 }
 
-/*example
-func main() {
-	V := map[int]int{1: 10, 2: 10, 3: 10, 4: 10, 5: 10}
-	E := [][]int{{1, 2}, {2, 4}, {2, 3}, {4, 5}, {3, 5}}
-	fmt.Println(Schedule(V, E, 2))
+//returns array as follows:
+//schedule[i] is what person
+//i's iterinary, i.e. a list of things
+//they need to do, in order.
+//schedule[i][j] contains a tuple
+//schedule[i][j][0] =  the id of the job
+//they should be working on at this point
+//schedule[i][j][1] = the time it should
+//take them
+func Schedule(R Recipe, n int) (schedule [][][]int) {
+
+	//build and run graph
+	V := map[interface{}]int{}
+	E := make([][]interface{}, 0)
+	for i := 0; i < len(R.Steps); i++ {
+		ptr := R.Steps[i]
+		V[(*ptr).getId()] = int((*ptr).getTimeInSeconds())
+		if (*ptr).isOperation() {
+			for j := 0; j < len((*ptr).Operation.Requires); j++ {
+				E = append(E, []interface{}{(*ptr).Operation.Requires[j], i})
+			}
+		}
+	}
+
+	H := scheduleGraph(V, E, n)
+
+	//format output
+	//initialize output
+	schedule = make([][][]int, len(H))
+	for i := 0; i < len(H); i++ {
+		schedule[i] = make([][]int, len(H[i]))
+		for j := 0; j < len(H[i]); j++ {
+			var id int
+			t := H[i][j].time
+			if H[i][j].job == nil {
+				id = -1
+			} else {
+				id = H[i][j].job.(int)
+			}
+			schedule[i][j] = []int{id, t}
+		}
+	}
+	return
 }
-*/
+
+//example
+// func main() {
+// 	v1 := "A"
+// 	v2 := "B"
+// 	v3 := "C"
+// 	v4 := "D"
+// 	v5 := "E"
+// 	V := map[interface{}]int{v1: 10, v2: 10, v3: 10, v4: 100, v5: 10}
+// 	E := [][]interface{}{{v1, v2}, {v2, v3}, {v2, v4}, {v4, v5}, {v3, v5}}
+// 	fmt.Println(scheduleGraph(V, E, 2))
+// }

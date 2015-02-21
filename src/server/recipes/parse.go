@@ -56,11 +56,11 @@ func (s *Step) getId() int {
 		return (*s).Operation.Id
 	}
 }
-func (s *Step) getTime() float64 {
+func (s *Step) getTimeInSeconds() float64 {
 	if (*s).isOperation() {
-		return (*s).Operation.Time.Amount
+		return (*s).Operation.Time.Amount * float64(times[(*s).Operation.Time.Unit])
 	} else {
-		return 0
+		return 15
 	}
 }
 func (s *Step) copy() (t Step) {

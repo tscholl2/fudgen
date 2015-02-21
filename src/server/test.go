@@ -22,4 +22,8 @@ func main() {
 		fmt.Println(s)
 	}
 	fmt.Println("END STEPS=========")
+	for _, s := range parsed.Steps {
+		fmt.Println(" requires ", (*s).Operation.Requires)
+	}
+	fmt.Println(recipes.Schedule(parsed, 2))
 }

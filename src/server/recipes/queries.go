@@ -116,7 +116,7 @@ func findFood(food string) (data map[string]string, err error) {
 				from FOOD_DES
 				join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No 
 				where FOOD_DES.Shrt_Desc like ? collate nocase
-				order by -Google_Hits
+				order by -Shrt_Hits
 				limit 15
 			)
 			order by random() limit 1
@@ -151,7 +151,7 @@ func findFood(food string) (data map[string]string, err error) {
 				select FOOD_DES.NDB_No
 				from FOOD_DES
 				join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No
-				order by -Google_Hits
+				order by -Shrt_Hits
 				limit 200
 			)
 			order by random() limit 1

@@ -3,6 +3,7 @@ data/
 #but do save some of it
 !data/COMMON.txt
 !data/RANKING.txt
+!data/PRICE.txt
 !data/schema.yml
 
 #dont save temp stuff

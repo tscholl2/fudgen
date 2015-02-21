@@ -13,6 +13,7 @@ files:
   - WEIGHT
   - RANKING
   - COMMON
+  - PRICE
 columns:
   DATA_SRC:
     - - DataSrc_ID
@@ -173,13 +174,22 @@ columns:
   RANKING:
     - - NDB_No
       - VARCHAR(5) NOT NULL
-    - - Google_Hits
+    - - Shrt_Hits #number of google hits on short description
+      - INTEGER
+    - - Long_Hits #number of google hits on long description
       - INTEGER
   COMMON:
     - - NDB_No
       - VARCHAR(5) NOT NULL
     - - Com_Desc
       - VARCHAR(255) NOT NULL
+  PRICE:
+    - - NDB_No
+      - VARCHAR(5) NOT NULL
+    - - Mean_Price #in american dollars/gram
+      - REAL(5.7) NOT NULL
+    - - Std_Dev
+      - REAL(5.7) NOT NULL
 primary:
   WEIGHT:
     - NDB_No
@@ -212,6 +222,8 @@ primary:
   RANKING:
     - NDB_No
   COMMON:
+    - NDB_No
+  PRICE:
     - NDB_No
 relations:
   FOOD_DES: []
@@ -254,5 +266,8 @@ relations:
     - - NDB_No
       - FOOD_DES
   COMMON:
+    - - NDB_No
+      - FOOD_DES
+  PRICE:
     - - NDB_No
       - FOOD_DES

@@ -1,5 +1,9 @@
 #dont save database
+#but do save some of it
 data/
+!data/COMMON.txt
+!data/RANKING.txt
+!data/schema.yml
 
 #dont save temp stuff
 tmp/

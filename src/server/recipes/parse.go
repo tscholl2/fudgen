@@ -1,10 +1,8 @@
 package recipes
 
 import (
-	//"bufio"
 	"errors"
 	"gopkg.in/yaml.v2"
-	//"os"
 	"strconv"
 	"strings"
 )
@@ -27,17 +25,22 @@ type Operation struct {
 }
 
 type Ingrediant struct {
-	Name        string              `json:"name"`
-	Id          int                 `json:"id"`
-	Data        map[string]string   `json:data`
-	Nutrition   map[string]Quantity `json:"nutr"`
-	Measurement Quantity            `json:"quant"`
-	Notes       string              `json:"notes"`
+	Name        string            `json:"name"`
+	Id          int               `json:"id"`
+	Data        map[string]string `json:data`
+	Measurement Quantity          `json:"quant"`
+	Notes       string            `json:"notes"`
 }
 
 type Step struct {
 	Ingrediant Ingrediant
 	Operation  Operation
+}
+
+type Recipe struct {
+	Steps     []*Step             `json:"steps"`
+	Title     string              `json:"title"`
+	Nutrition map[string]Quantity `json:"nutr"`
 }
 
 func (s *Step) isOperation() bool {
@@ -59,6 +62,28 @@ func (s *Step) getTime() float64 {
 	} else {
 		return 0
 	}
+}
+func (s *Step) copy() (t Step) {
+	if s.isIngrediant() {
+		t.Ingrediant.Name = s.Ingrediant.Name
+		t.Ingrediant.Notes = s.Ingrediant.Notes
+		t.Ingrediant.Id = s.Ingrediant.Id
+		t.Ingrediant.Measurement = s.Ingrediant.Measurement
+		t.Ingrediant.Data = make(map[string]string)
+		for k, v := range s.Ingrediant.Data {
+			t.Ingrediant.Data[k] = v
+		}
+	} else {
+		t.Operation.Id = s.Operation.Id
+		t.Operation.Name = s.Operation.Name
+		t.Operation.Notes = s.Operation.Notes
+		t.Operation.Time = s.Operation.Time
+		t.Operation.Requires = make([]int, len(s.Operation.Requires))
+		for i := 0; i < len(s.Operation.Requires); i++ {
+			t.Operation.Requires[i] = s.Operation.Requires[i]
+		}
+	}
+	return
 }
 
 type PreRecipe struct {
@@ -112,20 +137,68 @@ func init() {
 		"s":       1,
 		"sec":     1,
 		"seconds": 1}
-	//load units from file
-	// var measurements []string
-	// file, err := os.Open("../../data/units.txt")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// reader := bufio.NewReader(file)
-	// scanner := bufio.NewScanner(reader)
-	// for scanner.Scan() {
-	// 	measurements = append(measurements, scanner.Text())
-	// }
 }
 
-func ParseYaml(input string) (steps []*Step, err error) {
+//fills in steps by randomizing ingrediants
+//calculating nutritional data
+//and then returning the completed recipe
+//with a random name
+func steps2recipe(steps []*Step) (R Recipe, err error) {
+
+	//copy steps into recipe
+	for i := 0; i < len(steps); i++ {
+		var s Step
+		s = (*(steps[i])).copy()
+		R.Steps = append(R.Steps, &s)
+	}
+
+	//initialize nutrition map
+	R.Nutrition = make(map[string]Quantity)
+
+	//keep track of names for title creation
+	names := []string{}
+
+	//find ingrediants and fill in
+	for i := 0; i < len(R.Steps) && err == nil; i++ {
+		s := R.Steps[i]
+		if (*s).isIngrediant() {
+			//convert measurement to # of servings
+			servings := (*s).Ingrediant.Measurement.Amount
+
+			measurement, data, nutrition, err := searchForFood((*s).Ingrediant.Name, servings)
+			if err != nil {
+				break
+			}
+
+			//add nutrition to totals
+			for k, v := range nutrition {
+				_, ok := R.Nutrition[k]
+				if ok {
+					q := R.Nutrition[k]
+					R.Nutrition[k] = Quantity{Unit: v.Unit, Amount: q.Amount + v.Amount}
+				} else {
+					R.Nutrition[k] = v
+				}
+
+			}
+			//add name to list
+			names = append(names, (*s).Ingrediant.Name)
+			//set measurement
+			(*s).Ingrediant.Measurement = measurement
+			(*s).Ingrediant.Data = data
+		}
+	}
+	if err != nil {
+		return
+	}
+
+	//build a title
+	R.Title = randomTitle(names)
+
+	return
+}
+
+func ParseYaml(input string) (R Recipe, err error) {
 	//parse yaml into pre-recipe structure
 	var r PreRecipe
 	err = yaml.Unmarshal([]byte(input), &r)
@@ -147,6 +220,7 @@ func ParseYaml(input string) (steps []*Step, err error) {
 	setId(&r)
 
 	//go through recipe collect steps
+	steps := []*Step{}
 	//and then convert to actual recipe structure
 	var check func(*PreRecipe)
 	check = func(R *PreRecipe) {
@@ -186,6 +260,12 @@ func ParseYaml(input string) (steps []*Step, err error) {
 		}
 	}
 	check(&r)
+	if err != nil {
+		return
+	}
+
+	//fill in recipe automagically
+	R, err = steps2recipe(steps)
 	if err != nil {
 		return
 	}

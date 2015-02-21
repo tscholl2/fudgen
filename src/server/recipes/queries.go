@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func randomize(name string, servings float64) (measurement Quantity, data map[string]string, nutrition map[string]Quantity, err error) {
+func searchForFood(name string, servings float64) (measurement Quantity, data map[string]string, nutrition map[string]Quantity, err error) {
 	//first find food
 	data, err = findFood(name)
 	if err != nil {
@@ -37,77 +37,56 @@ func findNutrition(ndb_no string, servings float64) (measurement Quantity, nutri
 		Gm_Wgt
 	from
 	(
-		select * WEIGHT where NDB_No=?
+		select * from WEIGHT where NDB_No=?
 	)
 	order by random()
 	limit 1
 	`
+	var Msre_Desc string
+	var Amount float64
+	var Gm_Wgt float64
+	row := db.QueryRow(sql, ndb_no)
+	err = row.Scan(&Msre_Desc, &Amount, &Gm_Wgt)
+	if err != nil {
+		return
+	}
+
+	//record measurement
+	measurement.Amount = servings * Amount
+	measurement.Unit = Msre_Desc
+
+	//find number of grams
+	grams := Gm_Wgt * servings
+
+	//collect nurtition information
+	sql = `
+			select
+				NUT_DATA.Nutr_Val,
+				NUTR_DEF.Units,
+				NUTR_DEF.NutrDesc
+			from NUT_DATA
+			join NUTR_DEF on
+				NUTR_DEF.Nutr_No=NUT_DATA.Nutr_No
+			where NUT_DATA.NDB_No=?
+		`
 	rows, err := db.Query(sql, ndb_no)
 	if err != nil {
 		return
 	}
 	defer rows.Close()
 
-	//find matching unit
+	//initialize map
+	nutrition = make(map[string]Quantity)
+
+	//load data into map
 	for rows.Next() {
-		var Msre_Desc string
-		var Amount float64
-		var Gm_Wgt float64
-		rows.Scan(&Msre_Desc, &Amount, &Gm_Wgt)
-
-		//record measurement
-		measurement.Amount = servings * Amount
-		measurement.Unit = Msre_Desc
-
-		//find number of grams
-		grams := Gm_Wgt * servings
-
-		//collect nurtition information
-		sql = `
-			select
-				nutr_no,
-				nutr_val,
-
-		`
-
-		//check for match
-		if strings.Index(Msre_Desc, msre) != -1 {
-			grams := quantity * Gm_Wgt / 100.0
-			data["g"] = fmt.Sprintf("%s", grams)
-			//TODO
-			/*
-				def getNutrition(foodId,multiplier,nutrition):
-
-				  with con:
-
-				    cur = con.cursor()
-
-				    cur.execute('select nutr_no,nutr_val from nutrition_data where ndb_no match "'+foodId+'"')
-
-				    rows = cur.fetchall()
-
-				    for row in rows:
-				      id = int(row[0])
-				      val = float(row[1])
-				      cur2 = con.cursor()
-				      cur2.execute('select units,NutrDesc from nutr_def where nutr_no == "'+str(id)+'"')
-				      rows2 = cur2.fetchone()
-				      units = rows2[0]
-				      name = rows2[1]
-				      if ord(units[0])==65533:
-				        units = 'microgram'
-				      if units == 'IU':
-				        units = 'dimensionless'
-				      if name in nutrition.keys():
-				        nutrition[name.encode('utf-8')] = str(val*ureg.parse_expression(units)+ureg.parse_expression(nutrition[name.encode('utf-8')]))
-				      else:
-				        nutrition[name.encode('utf-8')] =str(val*ureg.parse_expression(units))
-
-
-				  return nutrition
-			*/
-		}
+		var nutr_val float64
+		var units string
+		var nutr_desc string
+		rows.Scan(&nutr_val, &units, &nutr_desc)
+		nutrition[nutr_desc] = Quantity{Unit: units, Amount: nutr_val * grams * 1.0 / 100}
 	}
+
 	return
 }
 
@@ -155,5 +134,39 @@ func findFood(food string) (data map[string]string, err error) {
 		data["NDB_No"] = id
 		data["Long_Desc"] = lng_desc
 	}
+
+	//check if didn't work
+	_, ok := data["NDB_No"]
+	if !ok {
+		//search for food
+		sql := `
+		select
+			FOOD_DES.Long_Desc,
+			FOOD_DES.NDB_No
+		from FOOD_DES
+		where FOOD_DES.NDB_No=
+		(
+			select NDB_No from
+			(
+				select FOOD_DES.NDB_No
+				from FOOD_DES
+				join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No
+				order by -Google_Hits
+				limit 200
+			)
+			order by random() limit 1
+		)
+		`
+		var lng_desc string
+		var id string
+		row := db.QueryRow(sql)
+		err = row.Scan(&lng_desc, &id)
+		if err != nil {
+			return
+		}
+		data["Long_Desc"] = lng_desc
+		data["NDB_No"] = id
+	}
+
 	return
 }

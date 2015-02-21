@@ -16,8 +16,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(parsed)
 	fmt.Println("START STEPS=======")
-	for _, s := range parsed {
+	for _, s := range parsed.Steps {
 		fmt.Println(s)
 	}
 	fmt.Println("END STEPS=========")

@@ -12,7 +12,8 @@ type Quantity struct {
 }
 
 //converts this quantity to a basic unit
-func (this *Quantity) toBasic() (q Quantity, err error) {
+//use with care!!! does NOT throw error
+func (this *Quantity) ToBasic() (q Quantity) {
 	var x float64
 	var u string
 	switch unit_type[this.Unit] {
@@ -25,9 +26,8 @@ func (this *Quantity) toBasic() (q Quantity, err error) {
 	case "volume":
 		x = (*this).Amount * toMilliters[(*this).Unit] //convert to milliters
 		u = "milliter"
-	}
-	if u == "" {
-		err = errors.New(fmt.Sprintf("unable to convert [%s] to seconds --- conversion failed", this))
+	default:
+		x = q.Amount
 	}
 	q.Type = unit_type[u]
 	q.Amount = x
@@ -50,17 +50,9 @@ func (this *Quantity) Convert(u string) (q Quantity, err error) {
 		return
 	}
 	//convert by pushing both to basic
-	q1, err := this.toBasic()
-	if err != nil {
-		err = errors.New(fmt.Sprintf("unable to convert [%s] ---> [%s]", this.Type, t))
-		return
-	}
+	q1 := this.ToBasic()
 	q = Quantity{Unit: u, Amount: 1, Type: t}
-	q2, err := q.toBasic()
-	if err != nil {
-		err = errors.New("who knows about this one")
-		return
-	}
+	q2 := q.ToBasic()
 	x := q2.Amount
 	y := q1.Amount
 	q.Amount = x * 1.0 / y
@@ -111,6 +103,7 @@ func init() {
 		"grain":      0.06479891,
 		"metric ton": 1000000,
 		"gram":       1,
+		"microgram":  1.0 / 1000000,
 		"kilogram":   1000}
 
 	for k, _ := range toGrams {
@@ -133,6 +126,8 @@ func init() {
 		"cups":             "cup",
 		"cup":              "cup",
 		"gal":              "gallon",
+		"gals":             "gallon",
+		"gallons":          "gallon",
 		"gallon":           "gallon",
 		"qt":               "quart",
 		"quart":            "quart",
@@ -176,6 +171,12 @@ func init() {
 		"gms":         "gram",
 		"grams":       "gram",
 		"gram":        "gram",
+		"um":          "microgram",
+		"µm":          "microgram",
+		"ums":         "microgram",
+		"µms":         "microgram",
+		"micrograms":  "microgram",
+		"microgram":   "microgram",
 		"kg":          "kilogram",
 		"kgs":         "kilogram",
 		"kilograms":   "kilogram",

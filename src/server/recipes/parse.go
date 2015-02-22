@@ -1,47 +1,42 @@
 package recipes
 
 import (
+	"../units"
 	"errors"
 	"gopkg.in/yaml.v2"
 	"strconv"
-	"strings"
 )
 
 /*
 see recipes/r.yml
 */
 
-type Quantity struct {
-	Unit   string  `json:"unit"`
-	Amount float64 `json:"amt"`
-}
-
 type Operation struct {
-	Name     string   `json:"name"`
-	Id       int      `json:"id"`
-	Time     Quantity `json:"time"`
-	Requires []int    `json:inputs`
-	Notes    string   `json:"notes"`
+	Name     string         `json:"name"`
+	Id       int            `json:"id"`
+	Time     units.Quantity `json:"time"`
+	Requires []int          `json:inputs`
+	Notes    string         `json:"notes"`
 }
 
 type Ingrediant struct {
 	Name        string            `json:"name"`
 	Id          int               `json:"id"`
 	Data        map[string]string `json:data`
-	Measurement Quantity          `json:"quant"`
+	Measurement units.Quantity    `json:"quant"`
 	Notes       string            `json:"notes"`
 }
 
-type Step struct {
+type Step struct { //because I don't know how to "extend" objects
 	Ingrediant Ingrediant
 	Operation  Operation
 }
 
 type Recipe struct {
-	Steps     []*Step             `json:"steps"`
-	Title     string              `json:"title"`
-	Nutrition map[string]Quantity `json:"nutr"`
-	Price     float64             `json:price`
+	Steps     []*Step                   `json:"steps"`
+	Title     string                    `json:"title"`
+	Nutrition map[string]units.Quantity `json:"nutr"`
+	Price     float64                   `json:price`
 }
 
 func (s *Step) isOperation() bool {
@@ -59,7 +54,8 @@ func (s *Step) getId() int {
 }
 func (s *Step) getTimeInSeconds() float64 {
 	if (*s).isOperation() {
-		return (*s).Operation.Time.Amount * float64(times[(*s).Operation.Time.Unit])
+		q := s.Operation.Time.ToBasic()
+		return q.Amount
 	} else {
 		return 15
 	}
@@ -92,52 +88,9 @@ type PreRecipe struct {
 	Operation   string      //name of operation to make this step, nil for ingrediants
 	Notes       string      //random notes to keep track of
 	Time        string      //length of step, nil for ingrediants
-	Servings    float64     //number of servings of ingrediant
+	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
 	Id          int         //for keeping track
 	Ingrediants []PreRecipe //if empty then this is raw ingrediant
-}
-
-var times map[string]int
-
-//given a string like "3 days"
-//returns the number of seconds
-func str2sec(s string) float64 {
-	//remove extra space
-	s = strings.TrimSpace(s)
-	for k, v := range times {
-		//look for units
-		n := strings.Index(s, k)
-		//if this is the right unit
-		if n >= 0 && s[n:] == k {
-			i, err := strconv.ParseFloat(strings.TrimSpace(s[:n]), 64)
-			if err != nil {
-				panic(err)
-			}
-			return i * float64(v)
-		}
-	}
-	return -1
-}
-
-//var measurements map[string]string
-
-func init() {
-	//all acceptable times
-	times = map[string]int{
-		"d":       3600 * 24,
-		"day":     3600 * 24,
-		"days":    3600 * 24,
-		"h":       3600,
-		"hr":      3600,
-		"hour":    3600,
-		"hours":   3600,
-		"m":       60,
-		"min":     60,
-		"minute":  60,
-		"minutes": 60,
-		"s":       1,
-		"sec":     1,
-		"seconds": 1}
 }
 
 //fills in steps by randomizing ingrediants
@@ -149,12 +102,12 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	//copy steps into recipe
 	for i := 0; i < len(steps); i++ {
 		var s Step
-		s = (*(steps[i])).copy()
+		s = (steps[i]).copy()
 		R.Steps = append(R.Steps, &s)
 	}
 
 	//initialize nutrition map
-	R.Nutrition = make(map[string]Quantity)
+	R.Nutrition = make(map[string]units.Quantity)
 
 	//keep track of names for title creation
 	names := []string{}
@@ -162,12 +115,12 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	//find ingrediants and fill in
 	for i := 0; i < len(R.Steps) && err == nil; i++ {
 		s := R.Steps[i]
-		if (*s).isIngrediant() {
-			//convert measurement to # of servings
-			servings := (*s).Ingrediant.Measurement.Amount
+		if s.isIngrediant() {
 
-			measurement, data, nutrition, err := searchForFood((*s).Ingrediant.Name, servings)
+			//look for closest/slightly random food
+			measurement, data, nutrition, err := searchForFood(s.Ingrediant.Name, s.Ingrediant.Measurement)
 			if err != nil {
+				panic(err)
 				break
 			}
 
@@ -176,12 +129,19 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 				_, ok := R.Nutrition[k]
 				if ok {
 					q := R.Nutrition[k]
-					R.Nutrition[k] = Quantity{Unit: v.Unit, Amount: q.Amount + v.Amount}
+					R.Nutrition[k] = units.Quantity{Unit: v.Unit, Amount: q.Amount + v.Amount, Type: v.Type}
 				} else {
 					R.Nutrition[k] = v
 				}
-
 			}
+
+			//add price to total if possible
+			_, ok := data["price"]
+			if ok {
+				x, _ := strconv.ParseFloat(data["price"], 64)
+				R.Price += x
+			}
+
 			//add name to list
 			names = append(names, (*s).Ingrediant.Name)
 			//set measurement
@@ -199,6 +159,8 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	return
 }
 
+//parses yaml into full recipe structure
+//fills in as best as possible
 func ParseYaml(input string) (R Recipe, err error) {
 	//parse yaml into pre-recipe structure
 	var r PreRecipe
@@ -242,22 +204,24 @@ func ParseYaml(input string) (R Recipe, err error) {
 			s.Ingrediant.Id = (*R).Id
 			s.Ingrediant.Name = (*R).Name
 			s.Ingrediant.Notes = (*R).Notes
-			s.Ingrediant.Measurement = Quantity{Amount: (*R).Servings, Unit: "servings"}
+			s.Ingrediant.Measurement, err = units.Parse(R.Quantity)
 		} else {
 			// ---- for operations
-			s.Operation.Id = (*R).Id
-			s.Operation.Name = (*R).Name
-			s.Operation.Notes = (*R).Notes
-			s.Operation.Time = Quantity{Amount: str2sec((*R).Time), Unit: "seconds"}
-			for k := 0; k < len((*R).Ingrediants); k++ {
+			s.Operation.Id = R.Id
+			s.Operation.Name = R.Name
+			s.Operation.Notes = R.Notes
+			s.Operation.Time, err = units.Parse(R.Time)
+			for k := 0; k < len(R.Ingrediants); k++ {
 				s.Operation.Requires = append(s.Operation.Requires, (*R).Ingrediants[k].Id)
 			}
 		}
+		if err != nil {
+			return
+		}
 		steps = append(steps, &s)
-
 		//recurse into dependencies
-		for k := 0; k < len((*R).Ingrediants); k++ {
-			check(&((*R).Ingrediants[k]))
+		for k := 0; k < len(R.Ingrediants); k++ {
+			check(&(R.Ingrediants[k]))
 		}
 	}
 	check(&r)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"./recipes"
+	//"./units"
 	"fmt"
 	"io/ioutil"
 )
@@ -26,4 +27,5 @@ func main() {
 		fmt.Println(" requires ", (*s).Operation.Requires)
 	}
 	fmt.Println(recipes.Schedule(parsed, 2))
+	//fmt.Println(recipes.FindNutrition("01009", units.Quantity{Amount: 3, Unit: "slices"}))
 }

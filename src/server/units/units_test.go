@@ -42,6 +42,18 @@ func TestParse(t *testing.T) {
 	var s string
 	var q Quantity
 	var err error
+	s = "  2.0  slices   "
+	q, err = Parse(s)
+	check(t, err, nil)
+	check(t, q.Amount, float64(2))
+	check(t, q.Type, "")
+	check(t, q.Unit, "")
+	s = "  2.0  pieces of something   "
+	q, err = Parse(s)
+	check(t, err, nil)
+	check(t, q.Amount, float64(2))
+	check(t, q.Type, "")
+	check(t, q.Unit, "")
 	s = "3/2 cups"
 	q, err = Parse(s)
 	check(t, err, nil)

@@ -41,6 +41,7 @@ type Recipe struct {
 	Steps     []*Step             `json:"steps"`
 	Title     string              `json:"title"`
 	Nutrition map[string]Quantity `json:"nutr"`
+	Price     float64             `json:price`
 }
 
 func (s *Step) isOperation() bool {

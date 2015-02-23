@@ -1,0 +1,10 @@
+{
+  "name": "fudgen",
+  "description": "fudgen front end",
+  "author": "Travis",
+  "dependencies": {
+    "bower": "latest",
+    "browserify": "latest",
+    "coffee-script": "latest"
+  }
+}

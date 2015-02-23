@@ -1,0 +1,11 @@
+{
+  "name": "fudgen",
+  "description": "fudgen client",
+  "version": "0.0.1",
+  "dependencies": {
+    "backbone": "latest",
+    "underscore": "latest",
+    "jquery": "latest"
+  },
+  "private": true
+}

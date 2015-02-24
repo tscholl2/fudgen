@@ -5,7 +5,9 @@
   "dependencies": {
     "backbone": "latest",
     "underscore": "latest",
-    "jquery": "latest"
+    "jquery": "latest",
+    "fontawesome":"latest",
+    "bootstrap":"latest"
   },
   "private": true
 }

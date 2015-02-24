@@ -35,8 +35,8 @@ $(BOWER_DEPS): $(BOWER)
 
 #installing
 
-COFFEE_FILES := $(shell find src -name 'src/*.coffee')
-COFFEE_FOLDERS := $(shell ls src -type d)
+COFFEE_FILES := $(shell find src -wholename 'src/*.coffee')
+COFFEE_FOLDERS := $(shell find src -wholename 'src/*.coffee')
 BUNDLE := lib/bundle.js
 SOURCE_MAP := lib/bundle.js.map
 

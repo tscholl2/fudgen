@@ -1,0 +1,29 @@
+DESTDIR = /var/www
+
+PRECOFFEE := $(shell find src -name '*.coffee')
+POSTCOFFEE := $(subst .coffee,.js,$(subst src/,lib/,$(PRECOFFEE)))
+CSS := $(wildcard css/*)
+IMG := $(wildcard img/*)
+COMMON := $(wildcard common/*)
+HTML := $(wildcard *.html)
+BOWER := $(shell find bower_components -name '*.js' -type f -or -name '*.css' -or -name '*.css.map' -or -name '*.woff' -or -name '*.ttf')
+PREINSTALL := $(POSTCOFFEE) $(CSS) $(HTML) $(IMG) $(COMMON) $(BOWER)
+POSTINSTALL := $(addprefix $(DESTDIR)/,$(PREINSTALL))
+
+lib/%.js: src/%.coffee
+	coffee -c -o $(@D) $<
+
+build: $(POSTCOFFEE)
+
+##############
+
+$(DESTDIR)/lib/%.js: lib/%.js
+	mkdir -p $(@D)
+	node ./bower_components/uglify-js/bin/uglifyjs -o $@ $<
+
+$(DESTDIR)/%: %
+	install -m 644 -D $< $@
+
+install: build $(POSTINSTALL)
+
+.PHONY: build install

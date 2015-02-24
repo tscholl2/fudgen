@@ -16,3 +16,4 @@ old/
 client/lib/
 client/node_modules/
 client/bower_components/
+client/www/

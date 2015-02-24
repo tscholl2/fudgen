@@ -8,7 +8,6 @@ SETUP_DIR := $(ROOT)/setup
 SETUP_SCRIPT := setup.go
 DB := $(DATA_DIR)/db
 SOURCE_NAMES := DATA_SRC DATSRCLN DERIV_CD FD_GROUP FOOD_DES FOOTNOTE LANGDESC LANGUAL NUT_DATA NUTR_DEF SRC_CD WEIGHT
-p := package.json
 SOURCE := $(addprefix $(DATA_DIR)/,$(addsuffix .txt,$(SOURCE_NAMES)))
 PDF := $(DATA_DIR)/sr27_doc.pdf
 ZIP := $(DATA_DIR)/sr27asc.zip

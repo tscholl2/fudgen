@@ -5,6 +5,7 @@
   "dependencies": {
     "bower": "latest",
     "browserify": "latest",
-    "coffee-script": "latest"
+    "coffee-script": "latest",
+    "exorcist": "latest"
   }
 }

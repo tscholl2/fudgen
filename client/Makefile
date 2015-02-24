@@ -1,3 +1,5 @@
+#configurable stuff
+DEST_DIR = ./www
 
 #npm stuff
 BOWER := node_modules/bower/bin/bower
@@ -31,10 +33,16 @@ $(NPM_DEPS):
 $(BOWER_DEPS): $(BOWER)
 	./$(BOWER) install
 
-#compiling
+#installing
 
-compile: $(COFFEE)
-	./$(COFFEE) --output lib --compile src
+COFFEE_FILES := $(shell find src -name 'src/*.coffee')
+BUNDLE := lib/bundle.js
+SOURCE_MAP := lib/bundle.js.map
+
+lib/%.js: src/%.coffee
+	./$(COFFEE) -c -o $(@D) $<
+
+build: $(DEST_DIR)/bundle.js
 
 #update dependencies
 
@@ -42,4 +50,4 @@ update:
 	npm install
 	./$(BOWER) install
 
-.PHONY: update compile setup
+.PHONY: update compile setup install build

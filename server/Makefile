@@ -18,7 +18,7 @@ build: $(DB)
 $(DB): $(SOURCE)
 	touch $(DB)
 	@command -v go >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
-	(cd setup; go run $(SETUP_SCRIPT))
+	go run $(SETUP_SCRIPT)
 
 $(ZIP):
 	mkdir -p $(DATA_DIR)

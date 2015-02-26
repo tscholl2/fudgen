@@ -1,10 +1,10 @@
 #dont save database
-data/
+server/data/*
 #but do save some of it
-!data/COMMON.txt
-!data/RANKING.txt
-!data/PRICE.txt
-!data/schema.yml
+!server/data/COMMON.txt
+!server/data/RANKING.txt
+!server/data/PRICE.txt
+!server/data/schema.yml
 
 #dont save temp stuff
 tmp/

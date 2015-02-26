@@ -3,6 +3,7 @@ package recipes
 import (
 	"../units"
 	"errors"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"strconv"
 )
@@ -32,28 +33,35 @@ type Step struct { //because I don't know how to "extend" objects
 	Operation  Operation  `json:"op":`
 }
 
-type Recipe struct {
+type Recipe struct { //TODO fix the stupid steps thing
 	Steps     []*Step                   `json:"steps"`
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:price`
 }
 
+func (s *Step) Name() string {
+	if s.isIngrediant() {
+		return s.Ingrediant.Name
+	} else {
+		return s.Operation.Name
+	}
+}
 func (s *Step) isOperation() bool {
-	return (*s).Operation.Name != ""
+	return s.Operation.Name != ""
 }
 func (s *Step) isIngrediant() bool {
-	return !(*s).isOperation()
+	return !s.isOperation()
 }
 func (s *Step) getId() int {
-	if (*s).isIngrediant() {
-		return (*s).Ingrediant.Id
+	if s.isIngrediant() {
+		return s.Ingrediant.Id
 	} else {
-		return (*s).Operation.Id
+		return s.Operation.Id
 	}
 }
 func (s *Step) getTimeInSeconds() float64 {
-	if (*s).isOperation() {
+	if s.isOperation() {
 		q := s.Operation.Time.ToBasic()
 		return q.Amount
 	} else {
@@ -120,7 +128,7 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			//look for closest/slightly random food
 			measurement, data, nutrition, err := searchForFood(s.Ingrediant.Name, s.Ingrediant.Measurement)
 			if err != nil {
-				panic(err) //TO-DO return here?
+				//panic(err) //TODO return here?
 				break
 			}
 
@@ -143,10 +151,10 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			}
 
 			//add name to list
-			names = append(names, (*s).Ingrediant.Name)
+			names = append(names, s.Ingrediant.Name)
 			//set measurement
-			(*s).Ingrediant.Measurement = measurement
-			(*s).Ingrediant.Data = data
+			s.Ingrediant.Measurement = measurement
+			s.Ingrediant.Data = data
 		}
 	}
 	if err != nil {
@@ -187,23 +195,25 @@ func ParseYaml(input string) (R Recipe, err error) {
 	//and then convert to actual recipe structure
 	var check func(*PreRecipe)
 	check = func(R *PreRecipe) {
+		if err != nil {
+			return
+		}
 		//check for terrible things
-		if len((*R).Ingrediants) == 0 && (*R).Operation != "" {
+		if len(R.Ingrediants) == 0 && R.Operation != "" {
 			err = errors.New("can't have operation description on raw ingrediant")
 			return
 		}
-		if (*R).Name == "" {
-			err = errors.New("No name!")
-			return
+		if R.Name == "" {
+			R.Name = fmt.Sprintf("Step %d", R.Id)
 		}
 
 		//convert to step
 		s := Step{}
-		if len((*R).Ingrediants) == 0 {
+		if len(R.Ingrediants) == 0 {
 			// ---- for ingrediants
-			s.Ingrediant.Id = (*R).Id
-			s.Ingrediant.Name = (*R).Name
-			s.Ingrediant.Notes = (*R).Notes
+			s.Ingrediant.Id = R.Id
+			s.Ingrediant.Name = R.Name
+			s.Ingrediant.Notes = R.Notes
 			s.Ingrediant.Measurement, err = units.Parse(R.Quantity)
 		} else {
 			// ---- for operations
@@ -212,7 +222,7 @@ func ParseYaml(input string) (R Recipe, err error) {
 			s.Operation.Notes = R.Notes
 			s.Operation.Time, err = units.Parse(R.Time)
 			for k := 0; k < len(R.Ingrediants); k++ {
-				s.Operation.Requires = append(s.Operation.Requires, (*R).Ingrediants[k].Id)
+				s.Operation.Requires = append(s.Operation.Requires, R.Ingrediants[k].Id)
 			}
 		}
 		if err != nil {

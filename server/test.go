@@ -20,7 +20,7 @@ func main() {
 	//fmt.Println(parsed)
 	fmt.Println("START STEPS=======")
 	for _, s := range parsed.Steps {
-		fmt.Println(s)
+		fmt.Println(s.Name())
 	}
 	fmt.Println("END STEPS=========")
 	for _, s := range parsed.Steps {
@@ -28,5 +28,4 @@ func main() {
 	}
 	fmt.Println(recipes.Schedule(parsed, 2))
 	//fmt.Println(recipes.FindNutrition("01009", units.Quantity{Amount: 3, Unit: "slices"}))
-	fmt.Println(recipes.SearchForFoodTest("cheese"))
 }

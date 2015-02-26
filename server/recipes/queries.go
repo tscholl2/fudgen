@@ -8,9 +8,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	DB_PATH = "../data/db"
-)
+var DB_PATH string
+
+func init() {
+	DB_PATH = "./data/db"
+}
 
 func searchForFood(name string, amount units.Quantity) (measurement units.Quantity, data map[string]string, nutrition map[string]units.Quantity, err error) {
 
@@ -36,10 +38,11 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 	select
 		FOOD_DES.Long_desc,
 		FOOD_DES.Shrt_Desc,
-		FOOD_DES.ComName,
+		COMMON.Com_Desc,
 		FOOD_DES.ManufacName,
 		PRICE.Mean_Price
 	from FOOD_DES
+	join COMMON on COMMON.NDB_No=FOOD_DES.NDB_No
 	left outer join PRICE
 		on FOOD_DES.NDB_No = PRICE.NDB_No
 	where FOOD_DES.NDB_No=?
@@ -63,11 +66,21 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 	data["Shrt_Desc"] = shrt_desc
 	data["ComName"] = com_name
 	data["ManufacName"] = man_name
-	if price == nil {
-		data["price"] = "0"
-	} else {
-		data["price"] = fmt.Sprintf("%f", price.(float64))
+
+	//compute price
+	var p float64 = 0
+	if price != nil {
+		//see if the amount is standardized
+		if amount.Type != "" {
+			//see findNutrition below, same idea
+			basic_quantity := amount.ToBasic()
+			p = basic_quantity.Amount * price.(float64) //price per gram
+		} else {
+			p = amount.Amount * price.(float64)
+		}
+
 	}
+	data["price"] = fmt.Sprintf("%f", p)
 
 	//finally return all the findings
 	return

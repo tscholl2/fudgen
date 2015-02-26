@@ -2,6 +2,7 @@ package main
 
 import (
 	"./recipes"
+	//"./units"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,8 +10,9 @@ import (
 )
 
 type message struct {
-	Error  error          `json:error`
-	Recipe recipes.Recipe `json:recipe`
+	Error    string         `json:error`
+	Recipe   recipes.Recipe `json:recipe`
+	Schedule [][][]int      `json:sched`
 }
 
 func main() {
@@ -20,7 +22,6 @@ func main() {
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		m := getRandomRecipe()
 		bytes, err := json.Marshal(m)
-		fmt.Println(err)
 		if err != nil {
 			bytes = []byte("{error:'I dont even know'}")
 		}
@@ -35,7 +36,11 @@ func getRandomRecipe() (m message) {
 		panic(err)
 	}
 	r, err := recipes.ParseYaml(string(b))
-	m.Error = err
+	m.Schedule = recipes.Schedule(r, 2)
+	if err != nil {
+		m.Error = err.Error()
+	}
 	m.Recipe = r
+	//m.Recipe.Nutrition = map[string]units.Quantity{}
 	return
 }

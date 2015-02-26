@@ -18,13 +18,13 @@ func (this *Quantity) ToBasic() (q Quantity) {
 	var u string
 	switch unit_type[this.Unit] {
 	case "time":
-		x = (*this).Amount * toSeconds[(*this).Unit] //convert to seconds
+		x = this.Amount * toSeconds[this.Unit] //convert to seconds
 		u = "second"
 	case "mass":
-		x = (*this).Amount * toGrams[(*this).Unit] //convert to grams
+		x = this.Amount * toGrams[this.Unit] //convert to grams
 		u = "gram"
 	case "volume":
-		x = (*this).Amount * toMilliters[(*this).Unit] //convert to milliters
+		x = this.Amount * toMilliters[this.Unit] //convert to milliters
 		u = "milliter"
 	default:
 		x = q.Amount

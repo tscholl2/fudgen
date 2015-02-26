@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+func init() {
+	DB_PATH = "../data/db"
+}
+
 func check(t *testing.T, value interface{}, expected interface{}) {
 	if value != expected {
 		t.Error("Expected ", expected, ", got ", value)
@@ -36,4 +40,16 @@ func TestSearch(t *testing.T) {
 	fmt.Println(search(s))
 	fmt.Println(search(s))
 	fmt.Println(search(s))
+}
+
+func TestPrice(t *testing.T) {
+	_, d, _, e := searchForFood("Cream cheese", units.Quantity{Unit: "gram", Amount: 1, Type: "mass"})
+	check(t, e, nil)
+	check(t, d["NDB_No"], "01017")
+	check(t, d["price"], fmt.Sprintf("%f", 0.026638))
+
+	_, d, _, e = searchForFood("Cream cheese", units.Quantity{Unit: "gram", Amount: 2, Type: "mass"})
+	check(t, e, nil)
+	check(t, d["NDB_No"], "01017")
+	check(t, d["price"], fmt.Sprintf("%f", 0.026638*2))
 }

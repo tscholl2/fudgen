@@ -41,8 +41,8 @@ func cleanField(raw string) string {
 			clean += string(raw[i])
 		case 233: //remove non-ascii character é with ascii code 130, go code 233
 			clean += "e"
-		case 181: //remove non-ascii character µ with ascii code 230, go code 181
-			clean += "u"
+			// case 181: //remove non-ascii character µ with ascii code 230, go code 181
+			// 	clean += "u"
 		}
 	}
 	if len(clean) > 1 && clean[0] == "~"[0] && clean[len(clean)-1] == "~"[0] {

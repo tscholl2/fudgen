@@ -6,10 +6,14 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	"strings"
+)
+
+const (
+	DB_PATH = "../data/db"
 )
 
 func searchForFood(name string, amount units.Quantity) (measurement units.Quantity, data map[string]string, nutrition map[string]units.Quantity, err error) {
+
 	//first find food
 	ndb_no, err := findFood(name)
 	if err != nil {
@@ -23,12 +27,12 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 	}
 
 	//gather basic details
-	db, err := sql.Open("sqlite3", "../../data/db")
+	db, err := sql.Open("sqlite3", DB_PATH)
 	if err != nil {
 		return
 	}
 	defer db.Close()
-	sql := `
+	sql_cmd := `
 	select
 		FOOD_DES.Long_desc,
 		FOOD_DES.Shrt_Desc,
@@ -46,11 +50,12 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 	var com_name string
 	var man_name string
 	var price interface{}
-	row := db.QueryRow(sql, ndb_no)
+	row := db.QueryRow(sql_cmd, ndb_no)
 	err = row.Scan(&long_desc, &shrt_desc, &com_name, &man_name, &price)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return
 	}
+
 	//initialize and fill data map
 	data = make(map[string]string)
 	data["NDB_No"] = ndb_no
@@ -64,6 +69,7 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 		data["price"] = fmt.Sprintf("%f", price.(float64))
 	}
 
+	//finally return all the findings
 	return
 }
 func FindNutrition(s string, u units.Quantity) (units.Quantity, map[string]units.Quantity, error) {
@@ -71,14 +77,14 @@ func FindNutrition(s string, u units.Quantity) (units.Quantity, map[string]units
 }
 func findNutrition(ndb_no string, given_amount units.Quantity) (measurement units.Quantity, nutrition map[string]units.Quantity, err error) {
 	//connect to db
-	db, err := sql.Open("sqlite3", "../../data/db")
+	db, err := sql.Open("sqlite3", DB_PATH)
 	if err != nil {
 		return
 	}
 	defer db.Close()
 
 	//search for food
-	sql := `
+	sql_cmd := `
 	select
 		Msre_Desc,
 		Amount,
@@ -93,7 +99,7 @@ func findNutrition(ndb_no string, given_amount units.Quantity) (measurement unit
 	var Msre_Desc string
 	var Amount float64
 	var Gm_Wgt float64
-	row := db.QueryRow(sql, ndb_no)
+	row := db.QueryRow(sql_cmd, ndb_no)
 	err = row.Scan(&Msre_Desc, &Amount, &Gm_Wgt)
 	if Msre_Desc == "" {
 		err = errors.New("No food found!: " + ndb_no)
@@ -121,7 +127,7 @@ func findNutrition(ndb_no string, given_amount units.Quantity) (measurement unit
 	}
 
 	//collect nurtition information
-	sql = `
+	sql_cmd = `
 			select
 				NUT_DATA.Nutr_Val,
 				NUTR_DEF.Units,
@@ -131,7 +137,7 @@ func findNutrition(ndb_no string, given_amount units.Quantity) (measurement unit
 				NUTR_DEF.Nutr_No=NUT_DATA.Nutr_No
 			where NUT_DATA.NDB_No=?
 		`
-	rows, err := db.Query(sql, ndb_no)
+	rows, err := db.Query(sql_cmd, ndb_no)
 	if err != nil {
 		return
 	}
@@ -161,15 +167,40 @@ func FindFood(food string) (ndb_no string, err error) {
 }
 func findFood(food string) (ndb_no string, err error) {
 	//connect to db
-	db, err := sql.Open("sqlite3", "../../data/db")
+	db, err := sql.Open("sqlite3", DB_PATH)
 	if err != nil {
 		return
 	}
 	defer db.Close()
 
+	//look for food in common first
+	sql_cmd := `
+		select NDB_No from
+		(
+			select COMMON.NDB_No, RANKING.Shrt_Hits
+			from COMMON
+			join RANKING on RANKING.NDB_No=COMMON.NDB_No
+			where COMMON.Com_Desc like ? collate nocase
+			order by RANKING.Shrt_Hits
+			limit 3
+		)
+		order by random()
+		limit 1
+	`
+	row := db.QueryRow(sql_cmd, "%"+food+"%")
+	err = row.Scan(&ndb_no)
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+	if ndb_no != "" {
+		return
+	}
+
+	//if can't find anything then try again
+	//using whole database
 	//find food by searching through db
 	//using the rankings to find closest matches
-	sql := `
+	sql_cmd = `
 		select NDB_No from
 		(
 			select FOOD_DES.NDB_No
@@ -182,34 +213,35 @@ func findFood(food string) (ndb_no string, err error) {
 		order by random()
 		limit 1
 	`
-	row := db.QueryRow(sql, "%"+strings.ToUpper(food)+"%")
+	row = db.QueryRow(sql_cmd, "%"+food+"%")
 	err = row.Scan(&ndb_no)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
+		return
+	}
+	if ndb_no != "" {
 		return
 	}
 
 	//check if didn't work
 	//in case we need to expand the search
 	//to pretty much anything really
-	if ndb_no == "" {
-		//search for food
-		sql := `
-		select NDB_No from
-		(
-			select FOOD_DES.NDB_No
-			from FOOD_DES
-			join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No
-			order by -Shrt_Hits
-			limit 200
-		)
-		order by random()
-		limit 1
-		`
-		row := db.QueryRow(sql)
-		err = row.Scan(&ndb_no)
-		if err != nil {
-			return
-		}
+	//search for food
+	sql_cmd = `
+	select NDB_No from
+	(
+		select FOOD_DES.NDB_No
+		from FOOD_DES
+		join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No
+		order by -Shrt_Hits
+		limit 200
+	)
+	order by random()
+	limit 1
+	`
+	row = db.QueryRow(sql_cmd)
+	err = row.Scan(&ndb_no)
+	if err != nil {
+		return
 	}
 	return
 }

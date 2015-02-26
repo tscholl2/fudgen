@@ -28,8 +28,8 @@ type Ingrediant struct {
 }
 
 type Step struct { //because I don't know how to "extend" objects
-	Ingrediant Ingrediant
-	Operation  Operation
+	Ingrediant Ingrediant `json:"ingrediant"`
+	Operation  Operation  `json:"op":`
 }
 
 type Recipe struct {
@@ -120,7 +120,7 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			//look for closest/slightly random food
 			measurement, data, nutrition, err := searchForFood(s.Ingrediant.Name, s.Ingrediant.Measurement)
 			if err != nil {
-				panic(err)
+				panic(err) //TO-DO return here?
 				break
 			}
 

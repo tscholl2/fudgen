@@ -2,7 +2,6 @@ ROOT = .
 
 #directories
 DATA_DIR := $(ROOT)/data
-SETUP_DIR := $(ROOT)/setup
 
 #files
 SETUP_SCRIPT := setup.go

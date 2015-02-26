@@ -30,7 +30,7 @@ type Ingrediant struct {
 
 type Step struct { //because I don't know how to "extend" objects
 	Ingrediant Ingrediant `json:"ingrediant"`
-	Operation  Operation  `json:"op":`
+	Operation  Operation  `json:"op"`
 }
 
 type Recipe struct { //TODO fix the stupid steps thing

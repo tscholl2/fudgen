@@ -18,6 +18,8 @@ build: $(DB)
 $(DB): $(SOURCE)
 	touch $(DB)
 	@command -v go >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
+	go get github.com/mattn/go-sqlite3
+	go get gopkg.in/yaml.v2
 	go run $(SETUP_SCRIPT)
 
 $(ZIP):

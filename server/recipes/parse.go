@@ -28,16 +28,17 @@ type Ingrediant struct {
 	Notes       string            `json:"notes"`
 }
 
-type Step struct { //because I don't know how to "extend" objects
-	Ingrediant Ingrediant `json:"ingrediant"`
-	Operation  Operation  `json:"op"`
-}
-
 type Recipe struct { //TODO fix the stupid steps thing
 	Steps     []*Step                   `json:"steps"`
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:price`
+}
+
+type Step interface { //because I don't know how to "extend" objects
+	Name() string
+	ID() int
+	JSON() string
 }
 
 func (s *Step) Name() string {
@@ -91,7 +92,7 @@ func (s *Step) copy() (t Step) {
 	return
 }
 
-type PreRecipe struct {
+type preRecipe struct {
 	Name        string      //name of food/recipe/step
 	Operation   string      //name of operation to make this step, nil for ingrediants
 	Notes       string      //random notes to keep track of
@@ -99,6 +100,10 @@ type PreRecipe struct {
 	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
 	Id          int         //for keeping track
 	Ingrediants []PreRecipe //if empty then this is raw ingrediant
+}
+type preStep struct { //because I don't know how to "extend" objects
+	Ingrediant Ingrediant `json:"ingrediant"`
+	Operation  Operation  `json:"op"`
 }
 
 //fills in steps by randomizing ingrediants

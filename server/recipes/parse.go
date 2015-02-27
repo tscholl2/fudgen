@@ -14,6 +14,7 @@ see recipes/r.yml
 
 type Operation struct {
 	Name     string         `json:"name"`
+	Description string `json:"desc"`
 	Id       int            `json:"id"`
 	Time     units.Quantity `json:"time"`
 	Requires []int          `json:inputs`
@@ -100,50 +101,65 @@ func preStep2Step(ps *preStep) (S *Step) {
 	}
 	return
 }
-func preRecipe2Steps(pr *preRecipe) (R *Recipe) {
-
+func preRecipe2Recipe(PR *preRecipe) (R *Recipe,err error) {
+/*
+type preRecipe struct {
+	Name        string      //name of food/recipe/step
+	Operation   string      //name of operation to make this step, nil for ingrediants
+	Notes       string      //random notes to keep track of
+	Time        string      //length of step, nil for ingrediants
+	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
+	Id          int         //for keeping track
+	Ingrediants []PreRecipe //if empty then this is raw ingrediant
+}
+*/
 	//go through recipe collect steps
 	steps := []*Step{}
 	//and then convert to actual recipe structure
 	var check func(*PreRecipe)
-	check = func(R *PreRecipe) {
+	check = func(pr2 *PreRecipe) {
 		if err != nil {
 			return
 		}
+
 		//check for terrible things
-		if len(R.Ingrediants) == 0 && R.Operation != "" {
+		if len(pr2.Ingrediants) == 0 && pr2.Operation != "" {
 			err = errors.New("can't have operation description on raw ingrediant")
 			return
 		}
-		if R.Name == "" {
-			R.Name = fmt.Sprintf("Step %d", R.Id)
+		if pr2.Name == "" {
+			pr2.Name = fmt.Sprintf("Step %d", pr2.Id)
 		}
 
 		//convert to step
-		s := Step{}
-		if len(R.Ingrediants) == 0 {
+		var s *Step
+		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
-			s.Ingrediant.Id = R.Id
-			s.Ingrediant.Name = R.Name
-			s.Ingrediant.Notes = R.Notes
-			s.Ingrediant.Measurement, err = units.Parse(R.Quantity)
+			i := make(Ingrediant)
+			i.Id = pr2.Id
+			i.Name = pr2.Name
+			i.Notes = pr2.Notes
+			i.Measurement, err = units.Parse(pr2.Quantity)
+			s = &i
 		} else {
 			// ---- for operations
-			s.Operation.Id = R.Id
-			s.Operation.Name = R.Name
-			s.Operation.Notes = R.Notes
-			s.Operation.Time, err = units.Parse(R.Time)
+			o := make(Operation)
+			o.Id = pr2.Id
+			o.Name = pr2.Name
+			o.Description = pr2.Operation
+			o.Notes = pr2.Notes
+			o.Time, err = units.Parse(pr2.Time)
 			for k := 0; k < len(R.Ingrediants); k++ {
-				s.Operation.Requires = append(s.Operation.Requires, R.Ingrediants[k].Id)
+				o.Requires = append(o.Requires, pr2.Ingrediants[k].Id)
 			}
 		}
 		if err != nil {
 			return
 		}
-		steps = append(steps, &s)
+		steps = append(steps, s)
 		//recurse into dependencies
-		for k := 0; k < len(R.Ingrediants); k++ {
-			check(&(R.Ingrediants[k]))
+		for k := 0; k < len(pr2.Ingrediants); k++ {
+			check(&(pr2.Ingrediants[k]))
 		}
 	}
 	check(&r)
@@ -153,9 +169,6 @@ func preRecipe2Steps(pr *preRecipe) (R *Recipe) {
 
 	//fill in recipe automagically
 	R, err = steps2recipe(steps)
-	if err != nil {
-		return
-	}
 
 	//finally return the new set of steps
 	return
@@ -171,7 +184,7 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	for i := 0; i < len(steps); i++ {
 		var s Step
 		s = (steps[i]).copy()
-		R.Steps = append(R.Steps, &s)
+		R.Steps = append(R.Steps, s)
 	}
 
 	//initialize nutrition map
@@ -188,7 +201,6 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			//look for closest/slightly random food
 			measurement, data, nutrition, err := searchForFood(s.Ingrediant.Name, s.Ingrediant.Measurement)
 			if err != nil {
-				//panic(err) //TODO return here?
 				break
 			}
 
@@ -249,74 +261,5 @@ func ParseYaml(input string) (R Recipe, err error) {
 		return
 	}
 
-	//first go through and set id's
-	id := 0
-	var setId func(*PreRecipe)
-	setId = func(R *PreRecipe) {
-		(*R).Id = id
-		id += 1
-		//recurse into dependencies
-		for k := 0; k < len((*R).Ingrediants); k++ {
-			setId(&((*R).Ingrediants[k]))
-		}
-	}
-	setId(&r)
-
-	//go through recipe collect steps
-	steps := []*Step{}
-	//and then convert to actual recipe structure
-	var check func(*PreRecipe)
-	check = func(R *PreRecipe) {
-		if err != nil {
-			return
-		}
-		//check for terrible things
-		if len(R.Ingrediants) == 0 && R.Operation != "" {
-			err = errors.New("can't have operation description on raw ingrediant")
-			return
-		}
-		if R.Name == "" {
-			R.Name = fmt.Sprintf("Step %d", R.Id)
-		}
-
-		//convert to step
-		s := Step{}
-		if len(R.Ingrediants) == 0 {
-			// ---- for ingrediants
-			s.Ingrediant.Id = R.Id
-			s.Ingrediant.Name = R.Name
-			s.Ingrediant.Notes = R.Notes
-			s.Ingrediant.Measurement, err = units.Parse(R.Quantity)
-		} else {
-			// ---- for operations
-			s.Operation.Id = R.Id
-			s.Operation.Name = R.Name
-			s.Operation.Notes = R.Notes
-			s.Operation.Time, err = units.Parse(R.Time)
-			for k := 0; k < len(R.Ingrediants); k++ {
-				s.Operation.Requires = append(s.Operation.Requires, R.Ingrediants[k].Id)
-			}
-		}
-		if err != nil {
-			return
-		}
-		steps = append(steps, &s)
-		//recurse into dependencies
-		for k := 0; k < len(R.Ingrediants); k++ {
-			check(&(R.Ingrediants[k]))
-		}
-	}
-	check(&r)
-	if err != nil {
-		return
-	}
-
-	//fill in recipe automagically
-	R, err = steps2recipe(steps)
-	if err != nil {
-		return
-	}
-
-	//finally return the new set of steps
-	return
+	
 }

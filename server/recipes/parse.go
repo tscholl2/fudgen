@@ -13,29 +13,34 @@ see recipes/r.yml
 */
 
 type Operation struct {
-	Name     string         `json:"name"`
-	Description string `json:"desc"`
-	Id       int            `json:"id"`
-	Time     units.Quantity `json:"time"`
-	Requires []int          `json:inputs`
-	Notes    string         `json:"notes"`
+	Name        string         `json:"name"`
+	Description string         `json:"desc"`
+	Id          int            `json:"id"`
+	Time        units.Quantity `json:"time"`
+	Requires    []int          `json:inputs`
+	Notes       string         `json:"notes"`
 }
-func (o *Operation) Name() string {
-	return o.Name
+
+func (s *Operation) GetName() string {
+	return s.Name
 }
-func (o *Operation) ID() int {
-	return o.Id
+func (s *Operation) GetID() int {
+	return s.Id
 }
-func (o *Operation) Time() int {
-	q := o.Time.toBasic()	
+func (s *Operation) GetTime() int {
+	q := s.Time.toBasic()
 	return q.Amount
 }
-func (o *Operation) IsIngrediant() bool {
+func (s *Operation) IsIngrediant() bool {
 	return false
 }
-func (o *Operation) JSON() string {
+func (s *Operation) GetJSON() string {
 	return "{}"
 }
+func (s *Operation) GetMeasurement() units.Quantity {
+	return units.Quantity{}
+}
+
 type Ingrediant struct {
 	Name        string            `json:"name"`
 	Id          int               `json:"id"`
@@ -43,20 +48,24 @@ type Ingrediant struct {
 	Measurement units.Quantity    `json:"quant"`
 	Notes       string            `json:"notes"`
 }
-func (s *Ingrediant) Name() string {
+
+func (s *Ingrediant) GetName() string {
 	return s.Name
 }
-func (s *Ingrediant) ID() int {
+func (s *Ingrediant) GetID() int {
 	return s.Id
 }
-func (s *Ingrediant) Time() int {
+func (s *Ingrediant) GetTime() int {
 	return 15
 }
-func (s *Ingrediant) IsIngrediant() bool {
+func (s *Ingrediant) GetIsIngrediant() bool {
 	return true
 }
-func (s *Ingrediant) JSON() string {
+func (s *Ingrediant) GetJSON() string {
 	return "{}"
+}
+func (s *Ingrediant) GetMeasurement() units.Quantity {
+	return s.Measurement
 }
 
 type Recipe struct {
@@ -66,11 +75,12 @@ type Recipe struct {
 	Price     float64                   `json:price`
 }
 type Step interface { //because I don't know how to "extend" objects
-	Name() string
-	ID() int
-	JSON() string
+	GetName() string
+	GetID() int
+	GetJSON() string
 	IsIngrediant() bool
-	Seconds() int
+	GetMeasurement() units.Quantity
+	GetSeconds() int
 }
 
 type preRecipe struct {
@@ -80,39 +90,10 @@ type preRecipe struct {
 	Time        string      //length of step, nil for ingrediants
 	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
 	Id          int         //for keeping track
-	Ingrediants []PreRecipe //if empty then this is raw ingrediant
-}
-type preStep struct { //because I don't know how to "extend" objects
-	Ingrediant Ingrediant `json:"ingrediant"`
-	Operation  Operation  `json:"op"`
+	Ingrediants []preRecipe //if empty then this is raw ingrediant
 }
 
-
-func preStep2Step(ps *preStep) (S *Step) {
-	//convert to step
-	if len(ps.Operation.Requires) == 0 {
-		// ---- for ingrediants
-		i := ps.Ingrediant
-		s = &i
-	} else {
-		// ---- for operations
-		o := ps.Operation
-		s = &o
-	}
-	return
-}
-func preRecipe2Recipe(PR *preRecipe) (R *Recipe,err error) {
-/*
-type preRecipe struct {
-	Name        string      //name of food/recipe/step
-	Operation   string      //name of operation to make this step, nil for ingrediants
-	Notes       string      //random notes to keep track of
-	Time        string      //length of step, nil for ingrediants
-	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
-	Id          int         //for keeping track
-	Ingrediants []PreRecipe //if empty then this is raw ingrediant
-}
-*/
+func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 	//go through recipe collect steps
 	steps := []*Step{}
 	//and then convert to actual recipe structure
@@ -182,8 +163,6 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 
 	//copy steps into recipe
 	for i := 0; i < len(steps); i++ {
-		var s Step
-		s = (steps[i]).copy()
 		R.Steps = append(R.Steps, s)
 	}
 
@@ -198,8 +177,10 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 		s := R.Steps[i]
 		if s.isIngrediant() {
 
+			ing := s.(Ingrediant)
+
 			//look for closest/slightly random food
-			measurement, data, nutrition, err := searchForFood(s.Ingrediant.Name, s.Ingrediant.Measurement)
+			measurement, data, nutrition, err := searchForFood(ing.Name, ing.Measurement)
 			if err != nil {
 				break
 			}
@@ -223,10 +204,14 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			}
 
 			//add name to list
-			names = append(names, s.Ingrediant.Name)
+			names = append(names, i.Name)
+
 			//set measurement
-			s.Ingrediant.Measurement = measurement
-			s.Ingrediant.Data = data
+			ing.Measurement = measurement
+			ing.Data = data
+
+			//replace old step
+			R[i] = &ing
 		}
 	}
 	if err != nil {
@@ -239,27 +224,15 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	return
 }
 
-
-
-
-
-
-
-
-
-//FIX THIS
-
-
-
 //parses yaml into full recipe structure
 //fills in as best as possible
-func ParseYaml(input string) (R Recipe, err error) {
+func ParseYaml(input string) (R *Recipe, err error) {
 	//parse yaml into pre-recipe structure
-	var r PreRecipe
-	err = yaml.Unmarshal([]byte(input), &r)
+	var pr PreRecipe
+	err = yaml.Unmarshal([]byte(input), &pr)
 	if err != nil {
 		return
 	}
-
-	
+	R, err = preRecipe2Recipe(pr)
+	return
 }

@@ -19,7 +19,22 @@ type Operation struct {
 	Requires []int          `json:inputs`
 	Notes    string         `json:"notes"`
 }
-
+func (o *Operation) Name() string {
+	return o.Name
+}
+func (o *Operation) ID() int {
+	return o.Id
+}
+func (o *Operation) Time() int {
+	q := o.Time.toBasic()	
+	return q.Amount
+}
+func (o *Operation) IsIngrediant() bool {
+	return false
+}
+func (o *Operation) JSON() string {
+	return "{}"
+}
 type Ingrediant struct {
 	Name        string            `json:"name"`
 	Id          int               `json:"id"`
@@ -27,69 +42,34 @@ type Ingrediant struct {
 	Measurement units.Quantity    `json:"quant"`
 	Notes       string            `json:"notes"`
 }
+func (s *Ingrediant) Name() string {
+	return s.Name
+}
+func (s *Ingrediant) ID() int {
+	return s.Id
+}
+func (s *Ingrediant) Time() int {
+	return 15
+}
+func (s *Ingrediant) IsIngrediant() bool {
+	return true
+}
+func (s *Ingrediant) JSON() string {
+	return "{}"
+}
 
-type Recipe struct { //TODO fix the stupid steps thing
+type Recipe struct {
 	Steps     []*Step                   `json:"steps"`
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:price`
 }
-
 type Step interface { //because I don't know how to "extend" objects
 	Name() string
 	ID() int
 	JSON() string
-}
-
-func (s *Step) Name() string {
-	if s.isIngrediant() {
-		return s.Ingrediant.Name
-	} else {
-		return s.Operation.Name
-	}
-}
-func (s *Step) isOperation() bool {
-	return s.Operation.Name != ""
-}
-func (s *Step) isIngrediant() bool {
-	return !s.isOperation()
-}
-func (s *Step) getId() int {
-	if s.isIngrediant() {
-		return s.Ingrediant.Id
-	} else {
-		return s.Operation.Id
-	}
-}
-func (s *Step) getTimeInSeconds() float64 {
-	if s.isOperation() {
-		q := s.Operation.Time.ToBasic()
-		return q.Amount
-	} else {
-		return 15
-	}
-}
-func (s *Step) copy() (t Step) {
-	if s.isIngrediant() {
-		t.Ingrediant.Name = s.Ingrediant.Name
-		t.Ingrediant.Notes = s.Ingrediant.Notes
-		t.Ingrediant.Id = s.Ingrediant.Id
-		t.Ingrediant.Measurement = s.Ingrediant.Measurement
-		t.Ingrediant.Data = make(map[string]string)
-		for k, v := range s.Ingrediant.Data {
-			t.Ingrediant.Data[k] = v
-		}
-	} else {
-		t.Operation.Id = s.Operation.Id
-		t.Operation.Name = s.Operation.Name
-		t.Operation.Notes = s.Operation.Notes
-		t.Operation.Time = s.Operation.Time
-		t.Operation.Requires = make([]int, len(s.Operation.Requires))
-		for i := 0; i < len(s.Operation.Requires); i++ {
-			t.Operation.Requires[i] = s.Operation.Requires[i]
-		}
-	}
-	return
+	IsIngrediant() bool
+	Seconds() int
 }
 
 type preRecipe struct {
@@ -104,6 +84,81 @@ type preRecipe struct {
 type preStep struct { //because I don't know how to "extend" objects
 	Ingrediant Ingrediant `json:"ingrediant"`
 	Operation  Operation  `json:"op"`
+}
+
+
+func preStep2Step(ps *preStep) (S *Step) {
+	//convert to step
+	if len(ps.Operation.Requires) == 0 {
+		// ---- for ingrediants
+		i := ps.Ingrediant
+		s = &i
+	} else {
+		// ---- for operations
+		o := ps.Operation
+		s = &o
+	}
+	return
+}
+func preRecipe2Steps(pr *preRecipe) (R *Recipe) {
+
+	//go through recipe collect steps
+	steps := []*Step{}
+	//and then convert to actual recipe structure
+	var check func(*PreRecipe)
+	check = func(R *PreRecipe) {
+		if err != nil {
+			return
+		}
+		//check for terrible things
+		if len(R.Ingrediants) == 0 && R.Operation != "" {
+			err = errors.New("can't have operation description on raw ingrediant")
+			return
+		}
+		if R.Name == "" {
+			R.Name = fmt.Sprintf("Step %d", R.Id)
+		}
+
+		//convert to step
+		s := Step{}
+		if len(R.Ingrediants) == 0 {
+			// ---- for ingrediants
+			s.Ingrediant.Id = R.Id
+			s.Ingrediant.Name = R.Name
+			s.Ingrediant.Notes = R.Notes
+			s.Ingrediant.Measurement, err = units.Parse(R.Quantity)
+		} else {
+			// ---- for operations
+			s.Operation.Id = R.Id
+			s.Operation.Name = R.Name
+			s.Operation.Notes = R.Notes
+			s.Operation.Time, err = units.Parse(R.Time)
+			for k := 0; k < len(R.Ingrediants); k++ {
+				s.Operation.Requires = append(s.Operation.Requires, R.Ingrediants[k].Id)
+			}
+		}
+		if err != nil {
+			return
+		}
+		steps = append(steps, &s)
+		//recurse into dependencies
+		for k := 0; k < len(R.Ingrediants); k++ {
+			check(&(R.Ingrediants[k]))
+		}
+	}
+	check(&r)
+	if err != nil {
+		return
+	}
+
+	//fill in recipe automagically
+	R, err = steps2recipe(steps)
+	if err != nil {
+		return
+	}
+
+	//finally return the new set of steps
+	return
 }
 
 //fills in steps by randomizing ingrediants
@@ -171,6 +226,18 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 
 	return
 }
+
+
+
+
+
+
+
+
+
+//FIX THIS
+
+
 
 //parses yaml into full recipe structure
 //fills in as best as possible

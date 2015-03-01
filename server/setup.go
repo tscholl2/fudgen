@@ -76,7 +76,7 @@ func main() {
 	}
 
 	//remove old db
-	os.Remove("../data/db")
+	os.Remove(DB_PATH)
 
 	//connect to db
 	//see https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go

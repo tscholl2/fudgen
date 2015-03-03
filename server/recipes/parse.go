@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"../units"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
@@ -21,24 +22,11 @@ type Operation struct {
 	Notes       string         `json:"notes"`
 }
 
-func (s *Operation) GetName() string {
-	return s.Name
-}
-func (s *Operation) GetID() int {
-	return s.Id
-}
-func (s *Operation) GetTime() int {
-	q := s.Time.toBasic()
-	return q.Amount
-}
 func (s *Operation) IsIngrediant() bool {
 	return false
 }
-func (s *Operation) GetJSON() string {
-	return "{}"
-}
-func (s *Operation) GetMeasurement() units.Quantity {
-	return units.Quantity{}
+func (s *Operation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s)
 }
 
 type Ingrediant struct {
@@ -49,23 +37,11 @@ type Ingrediant struct {
 	Notes       string            `json:"notes"`
 }
 
-func (s *Ingrediant) GetName() string {
-	return s.Name
-}
-func (s *Ingrediant) GetID() int {
-	return s.Id
-}
-func (s *Ingrediant) GetTime() int {
-	return 15
-}
-func (s *Ingrediant) GetIsIngrediant() bool {
+func (s *Ingrediant) IsIngrediant() bool {
 	return true
 }
-func (s *Ingrediant) GetJSON() string {
-	return "{}"
-}
-func (s *Ingrediant) GetMeasurement() units.Quantity {
-	return s.Measurement
+func (s *Ingrediant) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s)
 }
 
 type Recipe struct {
@@ -75,12 +51,8 @@ type Recipe struct {
 	Price     float64                   `json:price`
 }
 type Step interface { //because I don't know how to "extend" objects
-	GetName() string
-	GetID() int
-	GetJSON() string
 	IsIngrediant() bool
-	GetMeasurement() units.Quantity
-	GetSeconds() int
+	MarshalJSON() ([]byte, error)
 }
 
 type preRecipe struct {
@@ -97,8 +69,8 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 	//go through recipe collect steps
 	steps := []*Step{}
 	//and then convert to actual recipe structure
-	var check func(*PreRecipe)
-	check = func(pr2 *PreRecipe) {
+	var check func(*preRecipe)
+	check = func(pr2 *preRecipe) {
 		if err != nil {
 			return
 		}
@@ -116,7 +88,7 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 		var s *Step
 		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
-			i := make(Ingrediant)
+			i := Ingrediant{}
 			i.Id = pr2.Id
 			i.Name = pr2.Name
 			i.Notes = pr2.Notes
@@ -124,7 +96,7 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 			s = &i
 		} else {
 			// ---- for operations
-			o := make(Operation)
+			o := Operation{}
 			o.Id = pr2.Id
 			o.Name = pr2.Name
 			o.Description = pr2.Operation

@@ -70,9 +70,6 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 	//go through recipe collect steps
 	steps := []Step{}
 
-	//initialize counter
-	counter := 0
-
 	//and then convert to actual recipe structure
 	var check func(*preRecipe)
 	check = func(pr2 *preRecipe) {
@@ -91,12 +88,11 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 
 		//convert to step
 		var s Step
-		fmt.Println("made steps s=", s)
 
 		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
 			i := Ingrediant{}
-			i.Id = counter
+			i.Id = pr2.Id
 			i.Name = pr2.Name
 			i.Notes = pr2.Notes
 			i.Measurement, err = units.Parse(pr2.Quantity)
@@ -104,7 +100,7 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		} else {
 			// ---- for operations
 			o := Operation{}
-			o.Id = counter
+			o.Id = pr2.Id
 			o.Name = pr2.Name
 			o.Description = pr2.Operation
 			o.Notes = pr2.Notes
@@ -117,11 +113,7 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		if err != nil {
 			return
 		}
-		fmt.Println("made step now is ", s)
 		steps = append(steps, s)
-
-		//increment counter
-		counter++
 
 		//recurse into dependencies
 		for k := 0; k < len(pr2.Ingrediants); k++ {
@@ -229,6 +221,19 @@ func ParseYaml(input string) (R *Recipe, err error) {
 	if err != nil {
 		return
 	}
+	//set ids
+	//first go through and set id's
+	counter := 0
+	var setId func(*preRecipe)
+	setId = func(ptr *preRecipe) {
+		ptr.Id = counter
+		counter += 1
+		//recurse into dependencies
+		for k := 0; k < len(ptr.Ingrediants); k++ {
+			setId(&(ptr.Ingrediants[k]))
+		}
+	}
+	setId(&pr)
 	R, err = preRecipe2Recipe(&pr)
 	return
 }

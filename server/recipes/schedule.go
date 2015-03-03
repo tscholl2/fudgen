@@ -1,7 +1,7 @@
 package recipes
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 )
 
@@ -187,20 +187,24 @@ func scheduleGraph(V map[interface{}]int, E [][]interface{}, n int) [][]workerHi
 //they should be working on at this point
 //schedule[i][j][1] = the time it should
 //take them
-func Schedule(R Recipe, n int) (schedule [][][]int) {
+func Schedule(R *Recipe, n int) (schedule [][][]int) {
 
 	//build and run graph
 	V := map[interface{}]int{}
 	E := make([][]interface{}, 0)
 	for i := 0; i < len(R.Steps); i++ {
 		ptr := R.Steps[i]
-		V[(*ptr).getId()] = int((*ptr).getTimeInSeconds())
-		if (*ptr).isOperation() {
-			for j := 0; j < len((*ptr).Operation.Requires); j++ {
-				E = append(E, []interface{}{(*ptr).Operation.Requires[j], i})
+		if !ptr.IsIngrediant() {
+			op := ptr.(*Operation)
+			V[op.Id] = int(op.Time.ToBasic().Amount)
+			for j := 0; j < len(op.Requires); j++ {
+				E = append(E, []interface{}{op.Requires[j], i})
 			}
 		}
 	}
+
+	fmt.Println("V = ", V)
+	fmt.Println("E = ", E)
 
 	H := scheduleGraph(V, E, n)
 

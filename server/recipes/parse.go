@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -45,7 +46,7 @@ func (s *Ingrediant) MarshalJSON() ([]byte, error) {
 }
 
 type Recipe struct {
-	Steps     []*Step                   `json:"steps"`
+	Steps     []Step                    `json:"steps"`
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:price`
@@ -65,9 +66,9 @@ type preRecipe struct {
 	Ingrediants []preRecipe //if empty then this is raw ingrediant
 }
 
-func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
+func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 	//go through recipe collect steps
-	steps := []*Step{}
+	steps := []Step{}
 	//and then convert to actual recipe structure
 	var check func(*preRecipe)
 	check = func(pr2 *preRecipe) {
@@ -85,7 +86,8 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 		}
 
 		//convert to step
-		var s *Step
+		var s Step
+		fmt.Println("made steps s=", s)
 		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
 			i := Ingrediant{}
@@ -102,20 +104,22 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 			o.Description = pr2.Operation
 			o.Notes = pr2.Notes
 			o.Time, err = units.Parse(pr2.Time)
-			for k := 0; k < len(R.Ingrediants); k++ {
+			for k := 0; k < len(pr2.Ingrediants); k++ {
 				o.Requires = append(o.Requires, pr2.Ingrediants[k].Id)
 			}
+			s = &o
 		}
 		if err != nil {
 			return
 		}
+		fmt.Println("made step now is ", s)
 		steps = append(steps, s)
 		//recurse into dependencies
 		for k := 0; k < len(pr2.Ingrediants); k++ {
 			check(&(pr2.Ingrediants[k]))
 		}
 	}
-	check(&r)
+	check(pr)
 	if err != nil {
 		return
 	}
@@ -131,12 +135,14 @@ func preRecipe2Recipe(PR *preRecipe) (R *Recipe, err error) {
 //calculating nutritional data
 //and then returning the completed recipe
 //with a random name
-func steps2recipe(steps []*Step) (R Recipe, err error) {
+func steps2recipe(steps []Step) (R *Recipe, err error) {
+	//initialize output
+	r := Recipe{}
+	R = &r
 
 	//copy steps into recipe
-	for i := 0; i < len(steps); i++ {
-		R.Steps = append(R.Steps, s)
-	}
+	R.Steps = make([]Step, len(steps))
+	copy(R.Steps, steps)
 
 	//initialize nutrition map
 	R.Nutrition = make(map[string]units.Quantity)
@@ -147,9 +153,9 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 	//find ingrediants and fill in
 	for i := 0; i < len(R.Steps) && err == nil; i++ {
 		s := R.Steps[i]
-		if s.isIngrediant() {
+		if s.IsIngrediant() {
 
-			ing := s.(Ingrediant)
+			ing := s.(*Ingrediant)
 
 			//look for closest/slightly random food
 			measurement, data, nutrition, err := searchForFood(ing.Name, ing.Measurement)
@@ -176,14 +182,23 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 			}
 
 			//add name to list
-			names = append(names, i.Name)
+			for _, n := range strings.Fields(ing.Name) {
+				names = append(names, n)
+			}
 
 			//set measurement
 			ing.Measurement = measurement
 			ing.Data = data
 
 			//replace old step
-			R[i] = &ing
+			R.Steps[i] = ing
+		} else {
+			op := s.(*Operation)
+
+			//add name to list
+			for _, n := range strings.Fields(op.Name) {
+				names = append(names, n)
+			}
 		}
 	}
 	if err != nil {
@@ -200,11 +215,11 @@ func steps2recipe(steps []*Step) (R Recipe, err error) {
 //fills in as best as possible
 func ParseYaml(input string) (R *Recipe, err error) {
 	//parse yaml into pre-recipe structure
-	var pr PreRecipe
+	var pr preRecipe
 	err = yaml.Unmarshal([]byte(input), &pr)
 	if err != nil {
 		return
 	}
-	R, err = preRecipe2Recipe(pr)
+	R, err = preRecipe2Recipe(&pr)
 	return
 }

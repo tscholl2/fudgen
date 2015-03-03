@@ -69,6 +69,10 @@ type preRecipe struct {
 func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 	//go through recipe collect steps
 	steps := []Step{}
+
+	//initialize counter
+	counter := 0
+
 	//and then convert to actual recipe structure
 	var check func(*preRecipe)
 	check = func(pr2 *preRecipe) {
@@ -88,10 +92,11 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		//convert to step
 		var s Step
 		fmt.Println("made steps s=", s)
+
 		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
 			i := Ingrediant{}
-			i.Id = pr2.Id
+			i.Id = counter
 			i.Name = pr2.Name
 			i.Notes = pr2.Notes
 			i.Measurement, err = units.Parse(pr2.Quantity)
@@ -99,7 +104,7 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		} else {
 			// ---- for operations
 			o := Operation{}
-			o.Id = pr2.Id
+			o.Id = counter
 			o.Name = pr2.Name
 			o.Description = pr2.Operation
 			o.Notes = pr2.Notes
@@ -114,6 +119,10 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		}
 		fmt.Println("made step now is ", s)
 		steps = append(steps, s)
+
+		//increment counter
+		counter++
+
 		//recurse into dependencies
 		for k := 0; k < len(pr2.Ingrediants); k++ {
 			check(&(pr2.Ingrediants[k]))

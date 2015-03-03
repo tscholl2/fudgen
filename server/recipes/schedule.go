@@ -197,9 +197,18 @@ func Schedule(R *Recipe, n int) (schedule [][][]int) {
 		if !ptr.IsIngrediant() {
 			op := ptr.(*Operation)
 			V[op.Id] = int(op.Time.ToBasic().Amount)
+
+			fmt.Println("found op: ", op)
+
 			for j := 0; j < len(op.Requires); j++ {
 				E = append(E, []interface{}{op.Requires[j], i})
 			}
+		} else {
+			ing := ptr.(*Ingrediant)
+
+			fmt.Println("found ing = ", ing)
+
+			V[ing.Id] = 10
 		}
 	}
 

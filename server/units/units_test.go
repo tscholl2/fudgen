@@ -66,7 +66,7 @@ func TestParse(t *testing.T) {
 	check(t, q.Amount, 7.8)
 	check(t, q.Type, "time")
 	check(t, q.Unit, "hour")
-	q1, err := q.ToBasic()
+	q1 := q.ToBasic()
 	check(t, err, nil)
 	check(t, q1.Amount, 7.8*3600)
 	check(t, q1.Type, "time")

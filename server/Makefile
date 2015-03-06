@@ -18,24 +18,24 @@ build: $(DB)
 $(DB): $(SOURCE)
 	touch $(DB)
 	@command -v go >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
-	go get github.com/mattn/go-sqlite3
-	go get gopkg.in/yaml.v2
+	go get -u github.com/mattn/go-sqlite3
+	go get -u gopkg.in/yaml.v2
 	go run $(SETUP_SCRIPT)
 
 $(ZIP):
 	mkdir -p $(DATA_DIR)
 	wget -O $(ZIP) https://www.ars.usda.gov/SP2UserFiles/Place/12354500/Data/SR27/dnload/sr27asc.zip
-	
+
 $(SOURCE): $(ss)
 
 $(ss): $(ZIP)
 	unzip $(ZIP) -d $(DATA_DIR)
 	touch $(ss)
-	
+
 rebuild:
 	$(RM) -f $(DB)
 	$(MAKE) build
-	
+
 clean:
 	$(RM) $(PDF)
 	$(RM) $(SOURCE)

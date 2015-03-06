@@ -196,13 +196,13 @@ func Schedule(R *Recipe, n int) (schedule [][][]int) {
 		ptr := R.Steps[i]
 		if !ptr.IsIngrediant() {
 			op := ptr.(*Operation)
-			V[op.Id] = int(op.Time.ToBasic().Amount)
+			V[op.ID] = int(op.Time.ToBasic().Amount)
 			for j := 0; j < len(op.Requires); j++ {
 				E = append(E, []interface{}{op.Requires[j], i})
 			}
 		} else {
 			ing := ptr.(*Ingrediant)
-			V[ing.Id] = 10
+			V[ing.ID] = 10
 		}
 	}
 

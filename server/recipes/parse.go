@@ -11,48 +11,56 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-/*
-see recipes/r.yml
-*/
-
+// Operation data structure
 type Operation struct {
 	Name        string         `json:"name"`
 	Description string         `json:"desc"`
-	Id          int            `json:"id"`
+	ID          int            `json:"id"`
 	Time        units.Quantity `json:"time"`
-	Requires    []int          `json:inputs`
+	Requires    []int          `json:"reqs"`
 	Notes       string         `json:"notes"`
 }
 
+//IsIngrediant returns false for operations
 func (s *Operation) IsIngrediant() bool {
 	return false
 }
+
+//MarshalJSON returns this operation as json
 func (s *Operation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+//Ingrediant data structure
 type Ingrediant struct {
 	Name        string            `json:"name"`
-	Id          int               `json:"id"`
-	Data        map[string]string `json:data`
+	ID          int               `json:"id"`
+	Data        map[string]string `json:"data"`
 	Measurement units.Quantity    `json:"quant"`
 	Notes       string            `json:"notes"`
 }
 
+//IsIngrediant returns true for ingrediants
 func (s *Ingrediant) IsIngrediant() bool {
 	return true
 }
+
+//MarshalJSON returns ingrediant as json
 func (s *Ingrediant) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+//Recipe data struct, contains list of steps
+//which are either operations or ingrediants
 type Recipe struct {
 	Steps     []Step                    `json:"steps"`
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
-	Price     float64                   `json:price`
+	Price     float64                   `json:"price"`
 }
-type Step interface { //because I don't know how to "extend" objects
+
+//Step interface. just says what it can be cast to
+type Step interface {
 	IsIngrediant() bool
 	MarshalJSON() ([]byte, error)
 }
@@ -63,7 +71,7 @@ type preRecipe struct {
 	Notes       string      //random notes to keep track of
 	Time        string      //length of step, nil for ingrediants
 	Quantity    string      //how much of ingrediant, e.g. "1/2 cup" or "3 slices"
-	Id          int         //for keeping track
+	ID          int         //for keeping track
 	Ingrediants []preRecipe //if empty then this is raw ingrediant
 }
 
@@ -84,7 +92,7 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 			return
 		}
 		if pr2.Name == "" {
-			pr2.Name = fmt.Sprintf("Step %d", pr2.Id)
+			pr2.Name = fmt.Sprintf("Step %d", pr2.ID)
 		}
 
 		//convert to step
@@ -93,7 +101,7 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		if len(pr2.Ingrediants) == 0 {
 			// ---- for ingrediants
 			i := Ingrediant{}
-			i.Id = pr2.Id
+			i.ID = pr2.ID
 			i.Name = pr2.Name
 			i.Notes = pr2.Notes
 			i.Measurement, err = units.Parse(pr2.Quantity)
@@ -101,13 +109,13 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		} else {
 			// ---- for operations
 			o := Operation{}
-			o.Id = pr2.Id
+			o.ID = pr2.ID
 			o.Name = pr2.Name
 			o.Description = pr2.Operation
 			o.Notes = pr2.Notes
 			o.Time, err = units.Parse(pr2.Time)
 			for k := 0; k < len(pr2.Ingrediants); k++ {
-				o.Requires = append(o.Requires, pr2.Ingrediants[k].Id)
+				o.Requires = append(o.Requires, pr2.Ingrediants[k].ID)
 			}
 			s = &o
 		}
@@ -213,8 +221,10 @@ func steps2recipe(steps []Step) (R *Recipe, err error) {
 	return
 }
 
-//parses yaml into full recipe structure
-//fills in as best as possible
+// ParseYaml takes yaml and returns
+// full recipe structure
+// fills in as best as possible, automatically
+// randomizes ingrediants
 func ParseYaml(input string) (R *Recipe, err error) {
 	//parse yaml into pre-recipe structure
 	var pr preRecipe
@@ -225,16 +235,16 @@ func ParseYaml(input string) (R *Recipe, err error) {
 	//set ids
 	//first go through and set id's
 	counter := 0
-	var setId func(*preRecipe)
-	setId = func(ptr *preRecipe) {
-		ptr.Id = counter
-		counter += 1
+	var setID func(*preRecipe)
+	setID = func(ptr *preRecipe) {
+		ptr.ID = counter
+		counter++
 		//recurse into dependencies
 		for k := 0; k < len(ptr.Ingrediants); k++ {
-			setId(&(ptr.Ingrediants[k]))
+			setID(&(ptr.Ingrediants[k]))
 		}
 	}
-	setId(&pr)
+	setID(&pr)
 	R, err = preRecipe2Recipe(&pr)
 	return
 }

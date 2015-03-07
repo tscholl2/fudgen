@@ -208,8 +208,9 @@ func steps2recipe(steps []Step) (R *Recipe, err error) {
 	}
 
 	//build a title
-	R.Title = randomTitle(names)
+	R.Title = randomTitle(R)
 
+	//return recipe
 	return
 }
 

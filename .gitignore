@@ -11,6 +11,8 @@ tmp/
 
 #or old stuff
 old/
+client/old/
+server/old/
 
 #client build files
 client/lib/

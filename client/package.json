@@ -6,6 +6,7 @@
     "bower": "latest",
     "browserify": "latest",
     "coffee-script": "latest",
-    "exorcist": "latest"
+    "exorcist": "latest",
+    "coffeeify": "latest"
   }
 }

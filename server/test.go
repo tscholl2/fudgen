@@ -24,5 +24,10 @@ func main() {
 	}
 	fmt.Println("END STEPS=========")
 	fmt.Println(recipes.Schedule(parsed, 2))
+
+	s := parsed.Steps[0]
+	fmt.Println(s)
+	b, err = s.MarshalJSON()
+	fmt.Println(string(b))
 	//fmt.Println(recipes.FindNutrition("01009", units.Quantity{Amount: 3, Unit: "slices"}))
 }

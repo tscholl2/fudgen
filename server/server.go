@@ -10,9 +10,9 @@ import (
 )
 
 type message struct {
-	Error    string         `json:error`
-	Recipe   recipes.Recipe `json:recipe`
-	Schedule [][][]int      `json:sched`
+	Error    string         `json:"error"`
+	Recipe   recipes.Recipe `json:"recipe"`
+	Schedule [][][]int      `json:"sched"`
 }
 
 func main() {
@@ -40,7 +40,6 @@ func getRandomRecipe() (m message) {
 	if err != nil {
 		m.Error = err.Error()
 	}
-	m.Recipe = r
-	//m.Recipe.Nutrition = map[string]units.Quantity{}
+	m.Recipe = *r
 	return
 }

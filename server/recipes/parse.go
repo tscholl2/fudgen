@@ -28,7 +28,7 @@ func (s *Operation) IsIngrediant() bool {
 
 //MarshalJSON returns this operation as json
 func (s *Operation) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s)
+	return json.Marshal(*s)
 }
 
 //Ingrediant data structure
@@ -47,7 +47,7 @@ func (s *Ingrediant) IsIngrediant() bool {
 
 //MarshalJSON returns ingrediant as json
 func (s *Ingrediant) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s)
+	return json.Marshal(*s)
 }
 
 //Recipe data struct, contains list of steps

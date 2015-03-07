@@ -1,10 +1,11 @@
 package recipes
 
 import (
-	"../units"
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"../units"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -42,22 +43,25 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 		FOOD_DES.ManufacName,
 		PRICE.Mean_Price
 	from FOOD_DES
-	join COMMON on COMMON.NDB_No=FOOD_DES.NDB_No
-	left outer join PRICE
+	left join COMMON
+		on COMMON.NDB_No=FOOD_DES.NDB_No
+	left join PRICE
 		on FOOD_DES.NDB_No = PRICE.NDB_No
 	where FOOD_DES.NDB_No=?
 	limit 1
 	`
 	var long_desc string
 	var shrt_desc string
+	var pre_com_name []byte //might not always exist
 	var com_name string
 	var man_name string
 	var price interface{}
 	row := db.QueryRow(sql_cmd, ndb_no)
-	err = row.Scan(&long_desc, &shrt_desc, &com_name, &man_name, &price)
+	err = row.Scan(&long_desc, &shrt_desc, &pre_com_name, &man_name, &price)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
+	com_name = string(pre_com_name) //gives "" even if pre is nil
 
 	//initialize and fill data map
 	data = make(map[string]string)
@@ -172,12 +176,6 @@ func findNutrition(ndb_no string, given_amount units.Quantity) (measurement unit
 	return
 }
 
-//given a description of a food
-//looks for something matching that and
-//returns ndb_no
-func FindFood(food string) (ndb_no string, err error) {
-	return findFood(food)
-}
 func findFood(food string) (ndb_no string, err error) {
 	//connect to db
 	db, err := sql.Open("sqlite3", DB_PATH)
@@ -218,7 +216,7 @@ func findFood(food string) (ndb_no string, err error) {
 		(
 			select FOOD_DES.NDB_No
 			from FOOD_DES
-			join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No 
+			join RANKING on RANKING.NDB_No=FOOD_DES.NDB_No
 			where FOOD_DES.Shrt_Desc like ? collate nocase
 			order by -Shrt_Hits
 			limit 15

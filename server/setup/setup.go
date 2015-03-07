@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
+
+	_ "github.com/mattn/go-sqlite3"
+	"gopkg.in/yaml.v2"
 )
 
 var DATA_PATH string
@@ -20,7 +21,7 @@ var SCHEMA_PATH string
 //allows use of all cores
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	DATA_PATH = "./data/"
+	DATA_PATH = "../data/"
 	SCHEMA_PATH = DATA_PATH + "schema.yml"
 	DB_PATH = DATA_PATH + "db"
 }

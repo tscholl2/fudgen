@@ -75,9 +75,7 @@ type preRecipe struct {
 	Ingrediants []preRecipe //if empty then this is raw ingrediant
 }
 
-func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
-	//go through recipe collect steps
-	steps := []Step{}
+func preRecipe2Steps(pr *preRecipe) (steps []Step, err error) {
 
 	//and then convert to actual recipe structure
 	var check func(*preRecipe)
@@ -130,12 +128,6 @@ func preRecipe2Recipe(pr *preRecipe) (R *Recipe, err error) {
 		}
 	}
 	check(pr)
-	if err != nil {
-		return
-	}
-
-	//fill in recipe automagically
-	R, err = steps2recipe(steps)
 
 	//finally return the new set of steps
 	return
@@ -245,6 +237,10 @@ func ParseYaml(input string) (R *Recipe, err error) {
 		}
 	}
 	setID(&pr)
-	R, err = preRecipe2Recipe(&pr)
+	steps, err := preRecipe2Steps(&pr)
+	if err != nil {
+		return
+	}
+	R, err = steps2recipe(steps)
 	return
 }

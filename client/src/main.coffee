@@ -1,4 +1,2 @@
-
 settings = require './settings'
-
-alert "#{settings.url}"
+console.log settings

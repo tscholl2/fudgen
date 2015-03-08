@@ -1,4 +1,4 @@
-settings:
-    url: "localhost:8080/api"
+settings =
+	url: "localhost:8080/api"
 
-modules.export settings
+module.exports = settings

@@ -4,18 +4,19 @@ DEST_DIR = www
 #npm stuff
 BOWER := node_modules/bower/bin/bower
 BROWSERIFY := node_modules/browserify/bin/cmd.js
+EXORCIST := node_modules/exorcist/bin/exorcist.js
 COFFEEIFY := node_modules/coffeeify/index.js
 COFFEE := node_modules/coffee-script/bin/coffee
-NPM_DEPS := $(BOWER) $(BROWSERIFY) $(COFFEE)
+NPM_DEPS := $(BOWER) $(BROWSERIFY) $(COFFEE) $(COFFEEIFY) $(EXORCIST)
 
 #bower stuff
 BACKBONE := bower_components/backbone/backbone.js
 JQUERY := bower_components/jquery/dist/jquery.js
 UNDERSCORE := bower_components/underscore/underscore.js
-BOWER_DEPS := $(BACKBONE)
+BOWER_DEPS := $(BACKBONE) $(JQUERY) $(UNDERSCORE)
 
 #files
-BUNDLE := $(DEST_DIR)/bundle.js
+BUNDLE := lib/bundle.js
 MAIN := src/main.coffee
 
 #setinal stuff
@@ -41,15 +42,11 @@ $(BOWER_DEPS): $(BOWER)
 #installing
 
 COFFEE_FILES := $(shell find src -wholename 'src/*.coffee')
-JS_FILES := $(subst .coffee,.js,$(subst src/,lib/,$(COFFEE_FILES)))
-BUNDLE := lib/bundle.js
-SOURCE_MAP := lib/bundle.js.map
-
-lib/%.js: src/%.coffee
-	./$(COFFEE) -c -o $(@D) $<
 
 build: $(JS_FILES)
-	node ./$(BROWSERIFY) -t $(COFFEEIFY) lib/main.js > $(DEST_DIR)/bundle.js
+	node $(BROWSERIFY) -t coffeeify --extension=".coffee" src/main.coffee --debug | ./$(EXORCIST) $(BUNDLE).map > $(BUNDLE)
+	#for production use this one
+	#node $(BROWSERIFY) -t coffeeify --extension=".coffee" src/main.coffee > lib/bundle.js
 
 #update dependencies
 

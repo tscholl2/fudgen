@@ -18,7 +18,7 @@ img.loading {
 	margin: -100px 0  0 -100px;
 }
 
-.rotating-image {
+img.rotating {
     -webkit-animation:spin 4s linear infinite;
     -moz-animation:spin 4s linear infinite;
     animation:spin 4s linear infinite;

@@ -1,5 +1,5 @@
 #configurable stuff
-DEST_DIR = www
+INSTALL_DIR = www
 
 #npm stuff
 BOWER := node_modules/bower/bin/bower
@@ -61,45 +61,15 @@ $(BUNDLE): $(COFFEE_FILES)
 #installing
 #
 JS := $(wildcard lib/*)
-POST_JS := $(addprefix $(DEST_DIR)/,$(JS))
-CSS := $(wildcard css/*)
-POST_CSS := $(addprefix $(DEST_DIR)/,$(CSS)) $(DEST_DIR)/css/font-awesome.min.css $(DEST_DIR)/css/bootstrap.min.css $(DEST_DIR)/css/bootstrap-theme.min.css
-POST_IMG := $(addprefix $(DEST_DIR)/,$(IMG))
-HTML := $(wildcard html/*)
-POST_HTML := $(subst html/,$(DEST_DIR)/,$(HTML))
+CSS := $(wildcard css/*) bower_components/fontawesome/css/font-awesome.min.css bower_components/bootstrap/dist/css/bootstrap.min.css bower_components/bootstrap/dist/css/bootstrap-theme.min.css
+IMG := $(wildcard img/*)
+HTML := $(wildcard ./*.html)
 PREINSTALL := $(JS) $(CSS) $(IMG) $(HTML)
-POSTINSTALL := $(POST_JS) $(POST_CSS) $(POST_IMG) $(POST_HTML)
+POSTINSTALL := $(addprefix $(INSTALL_DIR)/,$(PREINSTALL))
 install: $(POSTINSTALL)
 
-#css files
-$(DEST_DIR)/css/font-awesome.min.css: bower_components/fontawesome/css/font-awesome.min.css
+$(INSTALL_DIR)/%: %
 	install -m 644 -D $< $@
-$(DEST_DIR)/css/bootstrap.min.css: bower_components/bootstrap/dist/css/bootstrap.min.css
-	install -m 644 -D $< $@
-$(DEST_DIR)/css/bootstrap-theme.min.css: bower_components/bootstrap/dist/css/bootstrap-theme.min.css
-	install -m 644 -D $< $@
-#the bottom is like this because we can't just use $(DESTDIR)/css/% as not all rules are the same
-$(addprefix $(DEST_DIR)/,$(CSS)): $(CSS)
-	install -m 644 -D $(patsubst $(DEST_DIR)/%,%,$<) $@
-
-#javascript files
-$(addprefix $(DEST_DIR)/,$(JS)): $(JS)
-	install -m 644 -D $(patsubst $(DEST_DIR)/%,%,$<) $@
-
-#images
-$(addprefix $(DEST_DIR)/,$(IMG)): $(IMG)
-	install -m 644 -D $(patsubst $(DEST_DIR)/%,%,$<) $@
-
-#HTML
-#????????????????????
-#??????????
-#??????????????
-#?????????????????
-
-test: $(POST_CSS)
-
-#$(DEST_DIR)/%.html: html/%
-#	install -m 644 -D $< $@
 
 
 #

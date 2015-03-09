@@ -1,15 +1,36 @@
 <html>
+    <!-- header info -->
     <head>
-
+        <title>Fudgen</title>
+        <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+        <!-- should fix for mobiles -->
+        <meta
+            name="viewport"
+            content="
+                width=device-width,
+                initial-scale=1.0,
+                maximum-scale=1.0,
+                user-scalable=no"
+        />
     </head>
+
+    <!-- main body content -->
     <body>
-        <div>
-            index
-            <i class="fa fa-camera-retro fa-3x"></i>
+        <div id='loading screen'>
+            <img id='loading-image' class='rotating-image' src='img/ham.svg' />
         </div>
+        <!--<i class="fa fa-camera-retro fa-3x"></i>-->
     </body>
-    <link rel="stylesheet" href="../bower_components/fontawesome/css/font-awesome.min.css" async>
-    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" async>
-    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css" async>
+
+    <!-- load scripts during loading screen -->
+    <link rel="stylesheet"
+        href="../bower_components/fontawesome/css/font-awesome.min.css"
+    async>
+    <link rel="stylesheet"
+        href="../bower_components/bootstrap/dist/css/bootstrap.min.css"
+    async>
+    <link rel="stylesheet"
+        href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css"
+    async>
     <script src="../lib/bundle.js" type="text/javascript" async></script>
 </html>

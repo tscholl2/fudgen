@@ -7,6 +7,10 @@
     "browserify": "latest",
     "coffee-script": "latest",
     "exorcist": "latest",
-    "coffeeify": "latest"
-  }
+    "coffeeify": "latest",
+    "jquery": "latest",
+    "bootstrap": "latest",
+    "underscore": "latest",
+    "font-awesome": "latest",
+    "backbone": "latest" }
 }

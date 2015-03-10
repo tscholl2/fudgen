@@ -39,6 +39,7 @@ $(bower-setinal): $(BOWER_DEPS)
 	touch $(bower-setinal)
 
 $(NPM_DEPS):
+	@command -v npm >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
 	npm install
 
 $(BOWER_DEPS): $(BOWER)
@@ -52,6 +53,7 @@ build: $(BUNDLE)
 
 $(BUNDLE): $(COFFEE_FILES)
 	mkdir -p lib
+	@command -v node >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
 	node $(BROWSERIFY) -t coffeeify --extension=".coffee" $(MAIN) --debug | ./$(EXORCIST) $(BUNDLE).map > $(BUNDLE)
 
 #for production use this one

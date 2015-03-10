@@ -21,7 +21,7 @@ var SCHEMA_PATH string
 //allows use of all cores
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	DATA_PATH = "../data/"
+	DATA_PATH = "./data/"
 	SCHEMA_PATH = DATA_PATH + "schema.yml"
 	DB_PATH = DATA_PATH + "db"
 }

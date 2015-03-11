@@ -8,10 +8,9 @@ class ScreenManager
 		@name = "loading-screen"
 
 	Switch: (name,callback) ->
-		self = @
-		$("##{self.name}").fadeOut ->
-			self.name = name
-			$("##{self.name}").fadeIn callback
+		$("##{@.name}").fadeOut =>
+			@.name = name
+			$("##{@.name}").fadeIn callback
 
 	Current: ->
 		return @name

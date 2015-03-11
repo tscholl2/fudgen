@@ -9,7 +9,7 @@ div.loading.screen {
 	position: fixed;
 }
 
-img.loading {
+loading-image {
 	position:fixed;
 	height: 200px;
 	width: 200px;

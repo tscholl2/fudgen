@@ -9,7 +9,7 @@ div.loading.screen {
 	position: fixed;
 }
 
-loading-image {
+.center-box {
 	position:fixed;
 	height: 200px;
 	width: 200px;
@@ -18,7 +18,7 @@ loading-image {
 	margin: -100px 0  0 -100px;
 }
 
-img.rotating {
+.spin {
     -webkit-animation:spin 4s linear infinite;
     -moz-animation:spin 4s linear infinite;
     animation:spin 4s linear infinite;

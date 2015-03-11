@@ -17,4 +17,4 @@ console.log
 _fn = ->
     SM.Switch "main-screen"
 
-setTimeout _fn, 300
+#setTimeout _fn, 300

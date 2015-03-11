@@ -12,5 +12,6 @@
     "bootstrap": "latest",
     "underscore": "latest",
     "font-awesome": "latest",
-    "backbone": "latest" }
+    "backbone": "latest",
+    "svg.js": "latest" }
 }

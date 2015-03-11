@@ -55,7 +55,7 @@ class Bunny
 
     blink: () ->
         if Math.random() < 0.5
-            console.log "left"
+            console.log "left" #TODO
         else
             console.log "right"
 

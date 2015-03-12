@@ -10,24 +10,34 @@
                 width=device-width,
                 initial-scale=1.0,
                 maximum-scale=1.0,
-                user-scalable=no"
+                user-scalable=yes"
         />
         <link rel="stylesheet" href="css/loading.css">
     </head>
 
     <!-- main body content -->
     <body>
-        <div id='loading-screen' class='loading screen'>
+        <div id='loading-screen' class='loading-screen'>
             <div class="center-box spin">
                 <i class="fa fa-space-shuttle fa-spin" style="font-size:7em;"></i>
             </div>
             <!--img id='loading-image' class='loading-image rotating' src='img/bun.svg' /-->
         </div>
         <!--<i class="fa fa-camera-retro fa-3x"></i>-->
-        <div id='main-screen' class='screen'>
-            <svg id="main-canvas" width="400" height="400">
+        <div id='main-screen' class='main-screen'>
+            <svg id="main-canvas" width="400" height="400" style="position:absolute;">
                 Cool, a canvas!
             </svg>
+            <div class="container">
+                <div class="jumbotron">
+                    <h1>Fudgen</h1>
+                    <p class="lead">
+                        A site to randomly generate recipes.
+
+                        It also has a bunny.
+                    </p>
+                </div>
+            </div>
         </div>
     </body>
 

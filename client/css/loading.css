@@ -1,12 +1,9 @@
-.screen {
-
-}
-
-div.loading.screen {
+.loading-screen {
 	height: 100%;
 	width: 100%;
 	background-color: #727271;
 	position: fixed;
+	z-index: 999;
 }
 
 .center-box {

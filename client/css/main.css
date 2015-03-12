@@ -1,0 +1,6 @@
+.main-screen {
+    height: 100%;
+	width: 100%;
+    background-color: #a7a7a6;
+	position: fixed;
+}

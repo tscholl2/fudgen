@@ -109,14 +109,14 @@ class Bunny
         e.animate 400
         .rotate (dir * 10),200,100
         .after ->
-            e.animate 300
+            e.animate 300, '-' #-: linear, <>: ease in/out, =: external, or a function for easing
             .rotate 0,200,100
 
     TwitchTail: () ->
         @tail.animate 400
         .rotate if Math.random() < 0.5 then 15 else -15
         .after =>
-            @tail.animate 300
+            @tail.animate 300, '-'
             .rotate 0
 
     #walks to the given position
@@ -155,13 +155,13 @@ class Bunny
     _run1: (i,leg_speed) ->
         if i <= 0
             return
-        @front_left_leg.animate leg_speed
+        @front_left_leg.animate leg_speed, '-'
         .rotate 20
-        @front_right_leg.animate leg_speed
+        @front_right_leg.animate leg_speed, '-'
         .rotate -20
-        @back_left_leg.animate leg_speed
+        @back_left_leg.animate leg_speed, '-'
         .rotate 20
-        @back_right_leg.animate leg_speed
+        @back_right_leg.animate leg_speed, '-'
         .rotate -20
         .after =>
             @_run2 i,leg_speed
@@ -169,13 +169,13 @@ class Bunny
     _run2: (i,leg_speed) ->
         if i <= 0
             return
-        @front_left_leg.animate leg_speed
+        @front_left_leg.animate leg_speed, '-'
         .rotate 0
-        @front_right_leg.animate leg_speed
+        @front_right_leg.animate leg_speed, '-'
         .rotate 0
-        @back_left_leg.animate leg_speed
+        @back_left_leg.animate leg_speed, '-'
         .rotate 0
-        @back_right_leg.animate leg_speed
+        @back_right_leg.animate leg_speed, '-'
         .rotate 0
         .after =>
             @_run1 i-1,leg_speed

@@ -14,7 +14,9 @@ console.log
 
 #if this is running then everything has been loaded
 
-_fn = ->
-    SM.Switch "main-screen"
 
-setTimeout _fn, 500
+
+_fn = ->
+    b.gp.center window.innerWidth/2, window.innerHeight/2
+    SM.Switch "main-screen"
+setTimeout _fn, 750

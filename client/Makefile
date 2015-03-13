@@ -32,19 +32,6 @@ $(NPM_DEPS):
 	npm install
 
 #
-#building
-#
-
-build: $(BUNDLE)
-
-$(BUNDLE): $(COFFEE_FILES) $(COFFEE) $(BROWSERIFY) $(EXORCIST)
-	@mkdir -p lib
-	@command -v node >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
-	node $(BROWSERIFY) -t coffeeify $(MAIN) --debug | ./$(EXORCIST) $(BUNDLE).map > $(BUNDLE)
-#for production use this one
-#node $(BROWSERIFY) -t coffeeify --extension=".coffee" src/main.coffee > lib/bundle.js
-
-#
 #installing
 #
 JS := $(wildcard lib/*)
@@ -59,6 +46,21 @@ install: $(POSTINSTALL)
 
 $(INSTALL_DIR)/%: %
 	install -m 644 -D $< $@
+
+
+#
+#building
+#
+
+build: $(BUNDLE)
+
+$(BUNDLE): $(COFFEE_FILES) $(COFFEE) $(BROWSERIFY) $(EXORCIST) $(CSS)
+	@mkdir -p lib
+	@command -v node >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
+	node $(BROWSERIFY) -t coffeeify $(MAIN) -t browserify-css css/main.css --debug | ./$(EXORCIST) $(BUNDLE).map > $(BUNDLE)
+#for production use this one
+#node $(BROWSERIFY) -t coffeeify --extension=".coffee" src/main.coffee > lib/bundle.js
+
 
 #
 #update dependencies

@@ -1,6 +1,18 @@
+@import url("../node_modules/font-awesome/css/font-awesome.min.css");
+@import url("../node_modules/bootstrap/dist/css/bootstrap.min.css");
+@import url("../node_modules/bootstrap/dist/css/bootstrap-theme.min.css");
+@import url("./container.css");
+
 .main-screen {
     height: 100%;
 	width: 100%;
-    background-color: #a7a7a6;
+    background-color: #B8CBBC;
 	position: fixed;
+}
+
+#main-canvas {
+    height: 100%;
+	width: 100%;
+    position: absolute;
+    z-index: 999;
 }

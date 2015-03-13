@@ -14,42 +14,34 @@
         />
         <link rel="stylesheet" href="css/loading.css">
     </head>
-
     <!-- main body content -->
     <body>
         <div id='loading-screen' class='loading-screen'>
             <div class="center-box spin">
-                <i class="fa fa-space-shuttle fa-spin" style="font-size:7em;"></i>
+                F
             </div>
-            <!--img id='loading-image' class='loading-image rotating' src='img/bun.svg' /-->
         </div>
-        <!--<i class="fa fa-camera-retro fa-3x"></i>-->
         <div id='main-screen' class='main-screen'>
-            <svg id="main-canvas" width="400" height="400" style="position:absolute;">
+            <svg id="main-canvas">
                 Cool, a canvas!
             </svg>
             <div class="container">
+                <div class="header">
+                    <h3 class="text-muted">Randomly Generated Recipes</h3>
+                </div>
                 <div class="jumbotron">
                     <h1>Fudgen</h1>
                     <p class="lead">
-                        A site to randomly generate recipes.
-
-                        It also has a bunny.
+                        A very simple app.
                     </p>
                 </div>
+                <footer class="footer">
+                    <p>Is this really a footer?</p>
+                </footer>
             </div>
         </div>
     </body>
 
     <!-- load scripts during loading screen -->
-    <link rel="stylesheet"
-        href="node_modules/font-awesome/css/font-awesome.min.css"
-    async>
-    <link rel="stylesheet"
-        href="node_modules/bootstrap/dist/css/bootstrap.min.css"
-    async>
-    <link rel="stylesheet"
-        href="node_modules/bootstrap/dist/css/bootstrap-theme.min.css"
-    async>
     <script src="lib/bundle.js" type="text/javascript" async></script>
 </html>

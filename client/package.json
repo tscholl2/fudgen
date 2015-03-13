@@ -13,5 +13,6 @@
     "underscore": "latest",
     "font-awesome": "latest",
     "backbone": "latest",
-    "svg.js": "latest" }
+    "svg.js": "latest",
+    "browserify-css": "latest" }
 }

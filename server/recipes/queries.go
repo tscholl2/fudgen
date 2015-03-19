@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"../units"
 	_ "github.com/mattn/go-sqlite3" //allows 'sqlite' driver in std sqldb lib
@@ -68,7 +69,7 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 	data["NDB_No"] = ndbNo
 	data["Long_Desc"] = longDesc
 	data["Shrt_Desc"] = shrtDesc
-	data["ComName"] = comName
+	data["Com_Desc"] = comName
 	data["ManufacName"] = manName
 
 	//compute price
@@ -174,7 +175,26 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 	return
 }
 
+func _queriesStrIsNdbNo(s string) bool {
+	if len(s) != 5 {
+		return false
+	}
+	_, err := strconv.Atoi(s)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func findFood(food string) (ndbNo string, err error) {
+	//if given an nbd_no immediately return it
+	//this assumes no food is labeled something like
+	//00123
+	if len(food) == 5 && _queriesStrIsNdbNo(food) {
+		ndbNo = food
+		return
+	}
+
 	//connect to db
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {

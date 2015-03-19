@@ -104,7 +104,7 @@ func TestPrint(t *testing.T) {
 		fmt.Println(s)
 	}
 	fmt.Println("END STEPS=========")
-	fmt.Println(Schedule(parsed, 2))
+	fmt.Println(Schedule(parsed))
 
 	s := parsed.Steps[0]
 	fmt.Println(s)
@@ -146,4 +146,18 @@ func TestRand(t *testing.T) {
 	_, err = randomRecipe()
 	check(t, err, nil)
 	//fmt.Println(r)
+}
+
+func TestSchedule(t *testing.T) {
+	fmt.Println("Testing scheudling...")
+	v1 := "A"
+	v2 := "B"
+	v4 := "D"
+	v3 := "C"
+	v5 := "E"
+	V := map[interface{}]int{v1: 10, v2: 10, v3: 10, v4: 100, v5: 10}
+	E := [][]interface{}{{v1, v2}, {v2, v3}, {v2, v4}, {v4, v5}, {v3, v5}}
+	h, err := optimalSchedule(V, E)
+	check(t, err, nil)
+	fmt.Println(h)
 }

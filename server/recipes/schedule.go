@@ -2,6 +2,7 @@ package recipes
 
 import (
 	//"fmt"
+	"errors"
 	"math"
 )
 
@@ -34,11 +35,17 @@ func (w *worker) work(t int) {
 		w.history = append(w.history, workerHistory{w.job, t})
 	}
 }
+func (w *worker) lifeTime() (t int) {
+	for _, h := range w.history {
+		t += h.time
+	}
+	return
+}
 
-type Group []*worker
+type workerGroup []*worker
 
 //worker group methods
-func (G *Group) available() (H Group) {
+func (G *workerGroup) available() (H []*worker) {
 	for _, g := range *G {
 		if (*g).job == nil {
 			H = append(H, g)
@@ -46,59 +53,59 @@ func (G *Group) available() (H Group) {
 	}
 	return
 }
-func (G *Group) next() (finished []interface{}) {
-	var t int = 0
+func (G *workerGroup) next() (finished []interface{}) {
+	var t int
 	for _, g := range *G {
-		if (*g).job != nil {
-			t = (*g).time
+		if g.job != nil {
+			t = g.time
 			break
 		}
 	}
 	for _, g := range *G {
-		if (*g).job != nil {
-			if (*g).time < t {
-				t = (*g).time
+		if g.job != nil {
+			if g.time < t {
+				t = g.time
 			}
 		}
 	}
 	for _, g := range *G {
-		(*g).work(t)
+		g.work(t)
 	}
 	for _, g := range *G {
-		if (*g).time == 0 && (*g).job != nil {
-			finished = append(finished, (*g).finish())
+		if g.time == 0 && g.job != nil {
+			finished = append(finished, g.finish())
 		}
 	}
 	return
 }
-func (G *Group) current(j interface{}) bool {
+func (G *workerGroup) current(j interface{}) bool {
 	for _, g := range *G {
-		if (*g).job == j {
+		if g.job == j {
 			return true
 		}
 	}
 	return false
 }
-func (G *Group) busy() bool {
+func (G *workerGroup) busy() bool {
 	for _, g := range *G {
-		if (*g).job != 0 {
+		if g.job != 0 {
 			return true
 		}
 	}
 	return false
 }
-func (G *Group) schedule() (h [][]workerHistory) {
+func (G *workerGroup) schedule() (h [][]workerHistory) {
 	for _, g := range *G {
 		h = append(h, []workerHistory{})
 		i := len(h) - 1
-		for _, m := range (*g).history {
+		for _, m := range g.history {
 			h[i] = append(h[i], m)
 		}
 	}
 	return
 }
 
-type Vertex struct {
+type vertex struct {
 	in  []interface{}
 	out []interface{}
 }
@@ -124,61 +131,62 @@ func splice(arr []interface{}, i int) []interface{} {
 	return left
 }
 
-// task algorithm
-//V is map of vertices ---> time it takes to complete
-//E is array of tuples {v1,v2} representing arrow v1 --> v2
-//n is number of workers available
-func scheduleGraph(V map[interface{}]int, E [][]interface{}, n int) [][]workerHistory {
-	// initialize graph
-	graph := make(map[interface{}]*Vertex)
-	for v, _ := range V {
-		graph[v] = &Vertex{}
+func optimalSchedule(V map[interface{}]int, E [][]interface{}) (h [][]workerHistory, err error) {
+	//initialize graph
+	G := make(map[interface{}]*vertex)
+	for v := range V {
+		G[v] = &vertex{}
 	}
 	for _, e := range E {
-		(*graph[e[1]]).in = append((*graph[e[1]]).in, e[0])
-		(*graph[e[0]]).out = append((*graph[e[0]]).out, e[1])
+		G[e[1]].in = append(G[e[1]].in, e[0])
+		G[e[0]].out = append(G[e[0]].out, e[1])
 	}
-
-	// initialize workers
-	workers := make(Group, n)
-	for i := 0; i < n; i++ {
-		workers[i] = &worker{}
-	}
-
+	//initialize workers
+	W := make(workerGroup, 1)
+	W[0] = &worker{}
 	//run scheduling
-	for len(graph) > 0 {
+	for len(G) > 0 {
 
 		var S []interface{}
-		for v, _ := range V {
-			if e, ok := graph[v]; ok {
-				if len(e.in) == 0 && !workers.current(v) {
+		for v := range V {
+			if e, ok := G[v]; ok {
+				if len(e.in) == 0 && !W.current(v) {
 					S = append(S, v)
 				}
 			}
 		}
 
-		W := workers.available()
+		available := W.available()
+		for len(available) < len(S) {
+			w := worker{}
+			w.assign(nil, W[0].lifeTime())
+			w.work(W[0].lifeTime())
+			w.finish()
+			W = append(W, &w)
+			available = W.available()
+		}
 
-		if (len(S) == 0) && !workers.busy() {
-			panic("Cycle?!")
+		if (len(S) == 0) && !W.busy() {
+			err = errors.New("Cycle?!")
+			return
 		}
 		for i := 0; i < int(math.Min(float64(len(S)), float64(len(W)))); i++ {
-			(*(W[i])).assign(S[i], V[S[i]])
+			W[i].assign(S[i], V[S[i]])
 		}
 
-		F := workers.next()
+		F := W.next()
 		for _, v := range F {
-			for _, w := range graph[v].out {
-				(*graph[w]).in = splice((*graph[w]).in, index((*graph[w]).in, v))
+			for _, w := range G[v].out {
+				G[w].in = splice(G[w].in, index(G[w].in, v))
 			}
-			delete(graph, v)
+			delete(G, v)
 		}
 	}
-
-	return workers.schedule()
+	h = W.schedule()
+	return
 }
 
-//returns array as follows:
+//Schedule returns array as follows:
 //schedule[i] is what person
 //i's iterinary, i.e. a list of things
 //they need to do, in order.
@@ -187,11 +195,11 @@ func scheduleGraph(V map[interface{}]int, E [][]interface{}, n int) [][]workerHi
 //they should be working on at this point
 //schedule[i][j][1] = the time it should
 //take them
-func Schedule(R *Recipe, n int) (schedule [][][]int) {
+func Schedule(R *Recipe) (schedule [][][]int, err error) {
 
 	//build and run graph
 	V := map[interface{}]int{}
-	E := make([][]interface{}, 0)
+	var E [][]interface{}
 	for i := 0; i < len(R.Steps); i++ {
 		ptr := R.Steps[i]
 		if !ptr.IsIngrediant() {
@@ -206,7 +214,10 @@ func Schedule(R *Recipe, n int) (schedule [][][]int) {
 		}
 	}
 
-	H := scheduleGraph(V, E, n)
+	H, err := optimalSchedule(V, E)
+	if err != nil {
+		return
+	}
 
 	//format output
 	//initialize output

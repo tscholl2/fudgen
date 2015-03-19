@@ -36,7 +36,7 @@ func getRandomRecipe() (m message) {
 		panic(err)
 	}
 	r, err := recipes.ParseYaml(string(b))
-	m.Schedule = recipes.Schedule(r, 2)
+	m.Schedule, err = recipes.Schedule(r)
 	if err != nil {
 		m.Error = err.Error()
 	}

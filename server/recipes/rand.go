@@ -8,17 +8,40 @@ import (
 )
 
 var operationList []string
+var maxDepth int
+var maxBreadth int
 
 func init() {
 	operationList = []string{
 		"grill",
-		"cook",
 		"microwave",
+		"bake",
+		"saute",
+		"boil",
+		"cut",
+		"chop",
+		"dice",
+		"slice",
+		"smash",
 	}
+	maxDepth = 5
+	maxBreadth = 3
 }
 
 func randomTitle(R *Recipe) string {
 	return "untited"
+}
+
+func randomRecipe() (r *Recipe, err error) {
+	p, err := randomPreRecipe()
+	if err != nil {
+		return
+	}
+	s, err := preRecipe2Steps(p)
+	if err != nil {
+		return
+	}
+	return steps2recipe(s)
 }
 
 /*
@@ -36,33 +59,62 @@ type preRecipe struct {
 //common table and also random operations from some list
 //somewhere
 func randomPreRecipe() (pr *preRecipe, err error) {
-	return randomPreRecipeHelper(rand.Intn(5), 0)
+	p, err := randomPreRecipeHelper(maxDepth)
+	if err != nil {
+		return
+	}
+	pr = &p
+	//first go through and set id's
+	counter := 0
+	var setID func(*preRecipe)
+	setID = func(ptr *preRecipe) {
+		ptr.ID = counter
+		counter++
+		//recurse into dependencies
+		for k := 0; k < len(ptr.Ingrediants); k++ {
+			setID(&(ptr.Ingrediants[k]))
+		}
+	}
+	setID(pr)
+	return
 }
 
-func randomPreRecipeHelper(level int, id int) (pr *preRecipe, err error) {
-	if rand.Float32() < 0.3 {
-		ndbNo, err := randomNdbNo()
+func randomPreRecipeHelper(level int) (pr preRecipe, err error) {
+	if (rand.Float32() < 0.3 || level < 1) && level != maxDepth {
+		ndbNo, err2 := randomNdbNo()
 		amount := units.Quantity{Amount: (rand.Float64() * 2.5), Unit: "servings"}
-		if err != nil {
-			break
-		}
-		//measurement units.Quantity
-		//data map[string]string
-		//nutrition map[string]units.Quantity
-		//err error
-		measurement, data, nutrition, err := searchForFood(ndbNo, amount)
-		if err != nil {
+		if err2 != nil {
+			err = err2
 			return
 		}
+		measurement, data, _, err2 := searchForFood(ndbNo, amount)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		//generate raw ingrediant
 		pr.Name = data["Com_Desc"]
-		pr.Notes = "randomly generated!"
 		pr.Quantity = fmt.Sprintf("%f %s", measurement.Amount, measurement.Unit)
-		pr.ID = id
 	} else {
-		pr.Operation = operationList[rand.Intn(len(operationList))]
-		pr.Time, err = randomTime(60, 500, "minutes")
-		if err != nil {
+		//generate operation
+		o := operationList[rand.Intn(len(operationList))]
+		pr.Name = o
+		pr.Operation = o
+		t, err2 := randomTime(60, 500, "minutes")
+		if err2 != nil {
+			err = err2
 			return
+		}
+		pr.Time = fmt.Sprintf("%f %s", t.Amount, t.Unit)
+		n := rand.Intn(maxBreadth) + 1
+		pr.Ingrediants = make([]preRecipe, n)
+		for i := 0; i < n; i++ {
+			pr2, err2 := randomPreRecipeHelper(level - 1)
+			if err2 != nil {
+				err = err2
+				return
+			}
+			pr.Ingrediants[i] = pr2
 		}
 	}
 	return
@@ -70,6 +122,6 @@ func randomPreRecipeHelper(level int, id int) (pr *preRecipe, err error) {
 
 func randomTime(lowerBound float64, upperBound float64, unit string) (q units.Quantity, err error) {
 	x := lowerBound + (upperBound-lowerBound)*rand.Float64()
-	q, err := units.Parse(fmt.Sprintf("%f %s", x, unit))
+	q, err = units.Parse(fmt.Sprintf("%f %s", x, unit))
 	return
 }

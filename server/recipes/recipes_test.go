@@ -112,3 +112,38 @@ func TestPrint(t *testing.T) {
 	fmt.Println(string(b))
 	//fmt.Println(recipes.FindNutrition("01009", units.Quantity{Amount: 3, Unit: "slices"}))
 }
+
+func TestRand(t *testing.T) {
+	fmt.Println("Testing random calls...")
+	q, err := randomTime(60, 500, "min")
+	check(t, err, nil)
+	fmt.Println(q)
+	q, err = randomTime(0, 1000, "seconds")
+	check(t, err, nil)
+	fmt.Println(q)
+	q, err = randomTime(60, 70, "minutes")
+	check(t, err, nil)
+	fmt.Println(q)
+
+	fmt.Println("Testing random prerec...")
+	pr, err := randomPreRecipe()
+	check(t, err, nil)
+	fmt.Println(pr)
+	pr, err = randomPreRecipe()
+	check(t, err, nil)
+	fmt.Println(pr)
+	pr, err = randomPreRecipe()
+	check(t, err, nil)
+	fmt.Println(pr)
+
+	fmt.Println("Testing random rec...")
+	_, err = randomRecipe()
+	//fmt.Println(r)
+	check(t, err, nil)
+	_, err = randomRecipe()
+	check(t, err, nil)
+	//fmt.Println(r)
+	_, err = randomRecipe()
+	check(t, err, nil)
+	//fmt.Println(r)
+}

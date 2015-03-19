@@ -196,5 +196,6 @@ func init() {
 		"minutes": "minute",
 		"s":       "second",
 		"sec":     "second",
+		"seconds": "second",
 		"second":  "second"}
 }

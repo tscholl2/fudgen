@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	DB_PATH = "../data/db"
+	dbPath = "../data/db"
 }
 
 func check(t *testing.T, value interface{}, expected interface{}) {

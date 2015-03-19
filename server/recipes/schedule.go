@@ -159,9 +159,12 @@ func optimalSchedule(V map[interface{}]int, E [][]interface{}) (h [][]workerHist
 		available := W.available()
 		for len(available) < len(S) {
 			w := worker{}
-			w.assign(nil, W[0].lifeTime())
-			w.work(W[0].lifeTime())
-			w.finish()
+			t := W[0].lifeTime()
+			if t > 0 {
+				w.assign(nil, W[0].lifeTime())
+				w.work(W[0].lifeTime())
+				w.finish()
+			}
 			W = append(W, &w)
 			available = W.available()
 		}
@@ -206,11 +209,10 @@ func Schedule(R *Recipe) (schedule [][][]int, err error) {
 			op := ptr.(*Operation)
 			V[op.ID] = int(op.Time.ToBasic().Amount)
 			for j := 0; j < len(op.Requires); j++ {
-				E = append(E, []interface{}{op.Requires[j], i})
+				if !R.Steps[op.Requires[j]].IsIngrediant() {
+					E = append(E, []interface{}{op.Requires[j], i})
+				}
 			}
-		} else {
-			ing := ptr.(*Ingrediant)
-			V[ing.ID] = 10
 		}
 	}
 

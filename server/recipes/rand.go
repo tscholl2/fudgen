@@ -7,22 +7,34 @@ import (
 	"../units"
 )
 
+type randOperation struct {
+	Name string
+	Upper: float64
+	Lower: float64
+	Unit: string
+	Type string
+}
+
 var operationList []string
 var maxDepth int
 var maxBreadth int
 
 func init() {
-	operationList = []string{
-		"grill",
-		"microwave",
-		"bake",
-		"saute",
-		"boil",
-		"cut",
-		"chop",
-		"dice",
-		"slice",
-		"smash",
+	operationList = []randOperation{
+		randOperation{
+			Name: "grill"
+			Upper: 30
+			Lower: 2
+			Unit: "min"
+			Type: "cook"
+		},
+		randOperation{
+			Name: "slice"
+			Upper: 10
+			Lower: 0.5
+			Unit: "min"
+			Type: "prep"
+		}
 	}
 	maxDepth = 5
 	maxBreadth = 3
@@ -30,6 +42,13 @@ func init() {
 
 func randomTitle(R *Recipe) string {
 	return "untited"
+}
+
+
+//RandomRecipe returns a recipe and error
+//public version of random rcipe function below
+func RandomRecipe() (*Recipe, error) {
+	return randomRecipe()
 }
 
 func randomRecipe() (r *Recipe, err error) {
@@ -98,9 +117,9 @@ func randomPreRecipeHelper(level int) (pr preRecipe, err error) {
 	} else {
 		//generate operation
 		o := operationList[rand.Intn(len(operationList))]
-		pr.Name = o
-		pr.Operation = o
-		t, err2 := randomTime(60, 500, "minutes")
+		pr.Name = o.Name
+		pr.Operation = o.Name
+		t, err2 := randomTime(o.Lower, o.Upper, o.Unit)
 		if err2 != nil {
 			err = err2
 			return

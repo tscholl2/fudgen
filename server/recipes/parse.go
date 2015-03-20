@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -86,7 +85,7 @@ func preRecipe2Steps(pr *preRecipe) (steps []Step, err error) {
 
 		//check for terrible things
 		if len(pr2.Ingrediants) == 0 && pr2.Operation != "" {
-			err = errors.New("can't have operation description on raw ingrediant")
+			err = fmt.Errorf("[P] Illeage op desc on raw ing")
 			return
 		}
 		if pr2.Name == "" {

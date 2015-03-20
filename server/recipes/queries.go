@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -118,7 +117,7 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 	row := db.QueryRow(sqlCmd, ndbNo)
 	err = row.Scan(&MsreDesc, &Amount, &GmWgt)
 	if MsreDesc == "" {
-		err = errors.New("No food found!: " + ndbNo)
+		err = fmt.Errorf("[Q] No weight found for %s", ndbNo)
 	}
 	if err != nil {
 		return
@@ -171,6 +170,7 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 		//calculate nutritional density * amount of ingrediant, see pg 26 of sr27_doc.pdf
 		nutrition[nutrDesc] = units.Quantity{Unit: u, Amount: nutrVal * grams * 1.0 / 100}
 	}
+	nutrition["Gm_Wgt"] = units.Quantity{Unit: "gram", Amount: grams, Type: "mass"}
 
 	return
 }
@@ -189,7 +189,7 @@ func _queriesStrIsNdbNo(s string) bool {
 func findFood(food string) (ndbNo string, err error) {
 	//if given an nbd_no immediately return it
 	//this assumes no food is labeled something like
-	//00123
+	//00123 or something else stupid
 	if len(food) == 5 && _queriesStrIsNdbNo(food) {
 		ndbNo = food
 		return
@@ -301,6 +301,6 @@ func randomNdbNo() (ndbNo string, err error) {
 	if ndbNo != "" {
 		return
 	}
-	err = errors.New("No food found :(")
+	err = fmt.Errorf("[Q] Unable to generate random ndb_no")
 	return
 }

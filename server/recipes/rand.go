@@ -2,57 +2,130 @@ package recipes
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
+	"strconv"
 
 	"../units"
 )
 
 type randOperation struct {
-	Name string
-	Upper: float64
-	Lower: float64
-	Unit: string
-	Type string
+	Name     string
+	MinPerGm float64
+	HighMin  float64
+	LowMin   float64
+	Type     string
+	Notes    string
 }
 
-var operationList []string
-var maxDepth int
-var maxBreadth int
+var operationList []randOperation
+var defaultParameters RandomParameters
 
 func init() {
 	operationList = []randOperation{
+		//prepping operations
 		randOperation{
-			Name: "grill"
-			Upper: 30
-			Lower: 2
-			Unit: "min"
-			Type: "cook"
+			Name:     "chop",
+			Notes:    "very fine",
+			MinPerGm: 0.6,
+			LowMin:   1,
+			HighMin:  5,
+			Type:     "prep",
 		},
 		randOperation{
-			Name: "slice"
-			Upper: 10
-			Lower: 0.5
-			Unit: "min"
-			Type: "prep"
-		}
+			Name:     "smash",
+			MinPerGm: 1,
+			LowMin:   5,
+			HighMin:  15,
+			Type:     "prep",
+		},
+		randOperation{
+			Name:     "slice",
+			Notes:    "thinly",
+			MinPerGm: 0.3,
+			LowMin:   1,
+			HighMin:  5,
+			Type:     "prep",
+		},
+		randOperation{
+			Name:     "mix",
+			MinPerGm: 0.2,
+			LowMin:   1,
+			HighMin:  5,
+			Type:     "prep",
+		},
+		//cooking operations
+		randOperation{
+			Name:     "grill",
+			Notes:    "use high heat",
+			MinPerGm: 2,
+			LowMin:   10,
+			HighMin:  60,
+			Type:     "cook",
+		},
+		randOperation{
+			Name:     "bake",
+			Notes:    "400 degrees",
+			MinPerGm: 10,
+			LowMin:   30,
+			HighMin:  60,
+			Type:     "cook",
+		},
+		randOperation{
+			Name:     "fry",
+			Notes:    "Medium pan on high heat",
+			MinPerGm: 2,
+			LowMin:   7,
+			HighMin:  15,
+			Type:     "cook",
+		},
+		randOperation{
+			Name:     "roast",
+			Notes:    "In oven",
+			MinPerGm: 15,
+			LowMin:   30,
+			HighMin:  60,
+			Type:     "cook",
+		},
 	}
-	maxDepth = 5
-	maxBreadth = 3
+	defaultParameters = RandomParameters{
+		MaxDepth:              3,
+		MaxRequirements:       3,
+		ProbabilityIngrediant: 0.8,
+		HowManyCooks:          2,
+		TooManyCooks:          false,
+		Servings:              4.5,
+		Dollars:               50,
+		Minutes:               120,
+	}
 }
 
 func randomTitle(R *Recipe) string {
 	return "untited"
 }
 
+//RandomParameters is just a container
+//for all the options given to the random
+//recipe generation
+type RandomParameters struct {
+	ProbabilityIngrediant float64 //default: 0.7
+	MaxDepth              int     //default: 3
+	MaxRequirements       int     //default: 3
+	HowManyCooks          int     //default: 2
+	TooManyCooks          bool    //default: false
+	Servings              float64 //default: between 3 and 5
+	Dollars               float64 //default: 50
+	Minutes               float64 //default: 120
+}
 
 //RandomRecipe returns a recipe and error
 //public version of random rcipe function below
-func RandomRecipe() (*Recipe, error) {
-	return randomRecipe()
+func RandomRecipe(options RandomParameters) (*Recipe, error) {
+	return randomRecipe(options)
 }
 
-func randomRecipe() (r *Recipe, err error) {
-	p, err := randomPreRecipe()
+func randomRecipe(options RandomParameters) (r *Recipe, err error) {
+	p, err := randomPreRecipe(options)
 	if err != nil {
 		return
 	}
@@ -73,16 +146,46 @@ type preRecipe struct {
 	ID          int         //for keeping track
 	Ingrediants []preRecipe //if empty then this is raw ingrediant
 }
+type RandomParameters struct {
+	ProbabilityIngrediant float64 //default: 0.7
+	MaxDepth              int     //default: 3
+	MaxRequirements       int     //default: 3
+	HowManyCooks          int     //default: 2
+	TooManyCooks          bool    //default: false
+	Servings              float64 //default: between 3 and 5
+	Dollars               float64 //default: 50
+	Minutes               float64 //default: 120
+}
 */
 //generates a random prerecipe using random foods from
 //common table and also random operations from some list
 //somewhere
-func randomPreRecipe() (pr *preRecipe, err error) {
-	p, err := randomPreRecipeHelper(maxDepth)
+func randomPreRecipe(options RandomParameters) (pr *preRecipe, err error) {
+	//parse options
+	if options.MaxDepth == 0 {
+		options.MaxDepth = defaultParameters.MaxDepth
+	}
+	if options.MaxRequirements == 0 {
+		options.MaxRequirements = defaultParameters.MaxRequirements
+	}
+	if options.Dollars == 0 {
+		options.Dollars = (rand.Float64()*0.5 + 0.75) * defaultParameters.Dollars
+	}
+	if options.Minutes == 0 {
+		options.Minutes = (rand.Float64()*0.5 + 0.75) * defaultParameters.Minutes
+	}
+	if options.Minutes == 0 {
+		options.Minutes = (rand.Float64()*0.5 + 0.75) * defaultParameters.Minutes
+	}
+	if options.Servings == 0 {
+		options.Servings = (rand.Float64() + 0.5) * defaultParameters.Servings
+	}
+	//call initial function
+	ptr, _, err := randomPreRecipeHelper(options, randPreHelperTotals{}, 0, randOperation{})
 	if err != nil {
 		return
 	}
-	pr = &p
+	pr = &ptr
 	//first go through and set id's
 	counter := 0
 	var setID func(*preRecipe)
@@ -98,15 +201,25 @@ func randomPreRecipe() (pr *preRecipe, err error) {
 	return
 }
 
-func randomPreRecipeHelper(level int) (pr preRecipe, err error) {
-	if (rand.Float32() < 0.3 || level < 1) && level != maxDepth {
+type randPreHelperTotals struct {
+	Servings float64
+	Dollars  float64
+	Minutes  float64
+	Weight   float64
+}
+
+func randomPreRecipeHelper(options RandomParameters, totals randPreHelperTotals, depth int, previous randOperation) (pr preRecipe, postTotals randPreHelperTotals, err error) {
+	//decide whether to build an ingrediant
+	if (rand.Float64() < options.ProbabilityIngrediant || depth >= options.MaxDepth) && depth > 0 {
+		//pick a random food using query function
 		ndbNo, err2 := randomNdbNo()
-		amount := units.Quantity{Amount: (rand.Float64() * 2.5), Unit: "servings"}
+		//choose some number of servings
+		servings := units.Quantity{Amount: (rand.Float64()*1.25 + 0.75), Unit: "servings"}
 		if err2 != nil {
 			err = err2
 			return
 		}
-		measurement, data, _, err2 := searchForFood(ndbNo, amount)
+		measurement, data, nutrition, err2 := searchForFood(ndbNo, servings)
 		if err2 != nil {
 			err = err2
 			return
@@ -114,33 +227,48 @@ func randomPreRecipeHelper(level int) (pr preRecipe, err error) {
 		//generate raw ingrediant
 		pr.Name = data["Com_Desc"]
 		pr.Quantity = fmt.Sprintf("%f %s", measurement.Amount, measurement.Unit)
-	} else {
-		//generate operation
-		o := operationList[rand.Intn(len(operationList))]
-		pr.Name = o.Name
-		pr.Operation = o.Name
-		t, err2 := randomTime(o.Lower, o.Upper, o.Unit)
-		if err2 != nil {
-			err = err2
-			return
+		//record information to send back up chain
+		//store servings
+		totals.Servings += servings.Amount
+		//store price
+		var price float64
+		price, err = strconv.ParseFloat(data["price"], 64)
+		if err != nil {
+			price = 0
 		}
-		pr.Time = fmt.Sprintf("%f %s", t.Amount, t.Unit)
-		n := rand.Intn(maxBreadth) + 1
+		totals.Dollars += price
+		//store weight
+		weight, ok := nutrition["Gm_Wgt"]
+		if ok {
+			totals.Weight += weight.Amount
+		}
+
+		//return information
+		postTotals = totals
+	} else {
+		//otherwise generate an operation and recurse
+		op := operationList[rand.Intn(len(operationList))]
+		for op.Type == previous.Type {
+			op = operationList[rand.Intn(len(operationList))]
+		}
+		pr.Operation = op.Name
+		//generate number of requirements
+		n := rand.Intn(options.MaxRequirements) + 1
 		pr.Ingrediants = make([]preRecipe, n)
+		//build requirements recursively
 		for i := 0; i < n; i++ {
-			pr2, err2 := randomPreRecipeHelper(level - 1)
+			//make sure to track totals!
+			subPr, totals, err2 := randomPreRecipeHelper(options, totals, depth+1, op)
 			if err2 != nil {
 				err = err2
 				return
 			}
-			pr.Ingrediants[i] = pr2
+			pr.Ingrediants[i] = subPr
+			//update return information
+			postTotals = totals
 		}
+		t := math.Max(math.Min(totals.Weight*op.MinPerGm, op.HighMin), op.LowMin)
+		pr.Time = fmt.Sprintf("%f %s", t, "min")
 	}
-	return
-}
-
-func randomTime(lowerBound float64, upperBound float64, unit string) (q units.Quantity, err error) {
-	x := lowerBound + (upperBound-lowerBound)*rand.Float64()
-	q, err = units.Parse(fmt.Sprintf("%f %s", x, unit))
 	return
 }

@@ -23,6 +23,10 @@ func Parse(s string) (q Quantity, err error) {
 	s = strings.TrimSpace(s)
 	//find numbers
 	index := number_re.FindStringIndex(s)
+	if index == nil {
+		err = errors.New(fmt.Sprintf("Unable to parse string: %s", s))
+		return
+	}
 	number_part := s[index[0]:index[1]]
 	//parse number
 	x, err := ParseNumber(number_part)

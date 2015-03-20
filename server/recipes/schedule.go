@@ -131,6 +131,56 @@ func splice(arr []interface{}, i int) []interface{} {
 	return left
 }
 
+func limitedSchedule(V map[interface{}]int, E [][]interface{}, n int) (H [][]workerHistory, err error) {
+	// initialize graph
+	graph := make(map[interface{}]*vertex)
+	for v := range V {
+		graph[v] = &vertex{}
+	}
+	for _, e := range E {
+		(*graph[e[1]]).in = append((*graph[e[1]]).in, e[0])
+		(*graph[e[0]]).out = append((*graph[e[0]]).out, e[1])
+	}
+
+	// initialize workers
+	workers := make(workerGroup, n)
+	for i := 0; i < n; i++ {
+		workers[i] = &worker{}
+	}
+
+	//run scheduling
+	for len(graph) > 0 {
+
+		var S []interface{}
+		for v := range V {
+			if e, ok := graph[v]; ok {
+				if len(e.in) == 0 && !workers.current(v) {
+					S = append(S, v)
+				}
+			}
+		}
+
+		W := workers.available()
+
+		if (len(S) == 0) && !workers.busy() {
+			err = errors.New("[S] Cycle")
+		}
+		for i := 0; i < int(math.Min(float64(len(S)), float64(len(W)))); i++ {
+			(*(W[i])).assign(S[i], V[S[i]])
+		}
+
+		F := workers.next()
+		for _, v := range F {
+			for _, w := range graph[v].out {
+				(*graph[w]).in = splice((*graph[w]).in, index((*graph[w]).in, v))
+			}
+			delete(graph, v)
+		}
+	}
+	H = workers.schedule()
+	return
+}
+
 func optimalSchedule(V map[interface{}]int, E [][]interface{}) (h [][]workerHistory, err error) {
 	//initialize graph
 	G := make(map[interface{}]*vertex)
@@ -170,7 +220,7 @@ func optimalSchedule(V map[interface{}]int, E [][]interface{}) (h [][]workerHist
 		}
 
 		if (len(S) == 0) && !W.busy() {
-			err = errors.New("Cycle?!")
+			err = errors.New("[S] Cycle")
 			return
 		}
 		for i := 0; i < int(math.Min(float64(len(S)), float64(len(W)))); i++ {
@@ -186,6 +236,50 @@ func optimalSchedule(V map[interface{}]int, E [][]interface{}) (h [][]workerHist
 		}
 	}
 	h = W.schedule()
+	return
+}
+
+//ScheduleFor returns same as optimale schedule
+//but limits number of workers to n
+func ScheduleFor(R *Recipe, n int) (schedule [][][]int, err error) {
+
+	//build and run graph
+	V := map[interface{}]int{}
+	var E [][]interface{}
+	for i := 0; i < len(R.Steps); i++ {
+		ptr := R.Steps[i]
+		if !ptr.IsIngrediant() {
+			op := ptr.(*Operation)
+			V[op.ID] = int(op.Time.ToBasic().Amount)
+			for j := 0; j < len(op.Requires); j++ {
+				if !R.Steps[op.Requires[j]].IsIngrediant() {
+					E = append(E, []interface{}{op.Requires[j], i})
+				}
+			}
+		}
+	}
+
+	H, err := limitedSchedule(V, E, n)
+	if err != nil {
+		return
+	}
+
+	//format output
+	//initialize output
+	schedule = make([][][]int, len(H))
+	for i := 0; i < len(H); i++ {
+		schedule[i] = make([][]int, len(H[i]))
+		for j := 0; j < len(H[i]); j++ {
+			var id int
+			t := H[i][j].time
+			if H[i][j].job == nil {
+				id = -1
+			} else {
+				id = H[i][j].job.(int)
+			}
+			schedule[i][j] = []int{id, t}
+		}
+	}
 	return
 }
 

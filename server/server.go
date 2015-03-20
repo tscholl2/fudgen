@@ -32,14 +32,14 @@ func main() {
 
 func getRandomRecipe() (m message) {
 	/*
-	b, err := ioutil.ReadFile("../recipes/r3.yml")
-	if err != nil {
-		panic(err)
-	}
-	r, err := recipes.ParseYaml(string(b))
+		b, err := ioutil.ReadFile("../recipes/r3.yml")
+		if err != nil {
+			panic(err)
+		}
+		r, err := recipes.ParseYaml(string(b))
 	*/
-	
-	r,err := recipes.RandomRecipe()
+
+	r, err := recipes.RandomRecipe(recipes.RandomParameters{})
 	m.Schedule, err = recipes.Schedule(r)
 	if err != nil {
 		m.Error = err.Error()

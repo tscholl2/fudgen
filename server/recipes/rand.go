@@ -227,7 +227,6 @@ func randomPreRecipeHelper(options RandomParameters, totals randPreHelperTotals,
 		//generate raw ingrediant
 		pr.Name = data["Com_Desc"]
 		pr.Quantity = fmt.Sprintf("%f %s", measurement.Amount, measurement.Unit)
-		fmt.Println("BUILD QUANITYT -----> ", measurement, pr.Quantity)
 		//record information to send back up chain
 		//store servings
 		totals.Servings += servings.Amount

@@ -254,7 +254,7 @@ func randomPreRecipeHelper(options RandomParameters, totals randPreHelperTotals,
 		pr.Operation = op.Name
 		//generate number of requirements
 		n := rand.Intn(options.MaxRequirements) + 1
-		pr.Ingrediants = make([]preRecipe, n)
+		pr.Ingrediants = make([]preRecipe, 1)
 		//build requirements recursively
 		for i := 0; i < n; i++ {
 			//make sure to track totals!
@@ -263,9 +263,16 @@ func randomPreRecipeHelper(options RandomParameters, totals randPreHelperTotals,
 				err = err2
 				return
 			}
-			pr.Ingrediants[i] = subPr
+			pr.Ingrediants = append(pr.Ingrediants, subPr)
 			//update return information
 			postTotals = totals
+			//check if we should add more
+			if totals.Dollars > options.Dollars {
+				break
+			}
+			if totals.Servings > options.Servings {
+				break
+			}
 		}
 		t := math.Max(math.Min(totals.Weight*op.MinPerGm, op.HighMin), op.LowMin)
 		pr.Time = fmt.Sprintf("%f %s", t, "min")

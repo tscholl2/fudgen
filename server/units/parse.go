@@ -1,7 +1,6 @@
 package units
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -9,12 +8,15 @@ import (
 	//"unicode/utf8"
 )
 
-var number_re *regexp.Regexp
+var numberRe *regexp.Regexp
 
 func init() {
-	number_re, _ = regexp.Compile("[.0-9/]+")
+	numberRe, _ = regexp.Compile("[.0-9/]+")
 }
 
+//Parse takes a string like "3 cups" and returns
+//a Quantity object. If it can't parse will throw
+//an error
 func Parse(s string) (q Quantity, err error) {
 	if len(s) > 100 { //nope
 		return
@@ -22,14 +24,14 @@ func Parse(s string) (q Quantity, err error) {
 	//remove extra space
 	s = strings.TrimSpace(s)
 	//find numbers
-	index := number_re.FindStringIndex(s)
+	index := numberRe.FindStringIndex(s)
 	if index == nil {
-		err = errors.New(fmt.Sprintf("Unable to parse string: %s", s))
+		fmt.Errorf("Unable to parse string: %s", s)
 		return
 	}
-	number_part := s[index[0]:index[1]]
+	numberPart := s[index[0]:index[1]]
 	//parse number
-	x, err := ParseNumber(number_part)
+	x, err := ParseNumber(numberPart)
 	if err != nil {
 		return
 	}
@@ -51,6 +53,9 @@ func Parse(s string) (q Quantity, err error) {
 	return
 }
 
+//ParseNumber takes in a string `123.22` and returns
+//a number. It is diff than strconv because it works
+//with `1/2` or `3.2/4`
 func ParseNumber(s string) (x float64, err error) {
 	s = strings.TrimSpace(s)
 	i := strings.Index(s, "/")
@@ -58,7 +63,7 @@ func ParseNumber(s string) (x float64, err error) {
 		a, err := strconv.ParseFloat(s[:i], 64)
 		b, err := strconv.ParseFloat(s[i+1:], 64)
 		if err != nil || b == 0 {
-			err = errors.New(fmt.Sprintf("Error paring number: [%s],[%s]", err, s))
+			err = fmt.Errorf("Error paring number: [%s],[%s]", err, s)
 		} else {
 			x = a * 1.0 / b
 		}
@@ -68,6 +73,10 @@ func ParseNumber(s string) (x float64, err error) {
 	return
 }
 
+//ParseUnit takes a string like `cup` or `Cups`
+//and returns the best guess for the unit of measurement
+//see the table in basics.go for more info
+//throws an error if it can't figure it out
 func ParseUnit(s string) (u string, err error) {
 	//clean up
 	s = strings.TrimSpace(strings.ToLower(s))

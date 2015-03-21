@@ -8,15 +8,15 @@ console.log SM
 
 B = require './Bunny.coffee'
 
-window.b = new B(document.getElementById("main-canvas"))
+M = require './Models.coffee'
 
-console.log
+window.b = new B(document.getElementById("main-canvas"))
 
 #if this is running then everything has been loaded
 
-
-
 _fn = ->
-    b.gp.center window.innerWidth/2, window.innerHeight/2
+    b.gp.center window.innerWidth/2, window.innerHeight - 17
     SM.Switch "main-screen"
+    b.ActNatural true
+
 setTimeout _fn, 750

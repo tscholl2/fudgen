@@ -7,7 +7,16 @@ class Bunny
         #variable for speed, about ~ number of leg movements/second
         @leg_actions_per_second = 1.18
         #movment, about ~ 1px / second
-        @pixels_per_second = 35.14
+        @pixels_per_second = 30.14
+        #time for blink in ms
+        @blink_speed = 200
+        #also ms
+        @ear_twitch_speed = 200
+        #also ms
+        @tail_twitch_speed = 200
+        #animating monitor
+        @in_motion = false
+        @keep_moving = true
         #colors for body elements
         @body_color = "#aa00d3"
         @eye_color = "#ffffff"
@@ -68,59 +77,87 @@ class Bunny
         @left_eye_closed = @gp.path "m166,162c1.2215,0.87866 2.05083,1.30084 2.7,1.64734c0.84938,0.45335 1.8,0.35266 2.7,0.35266c0.90001,0 1.8,0 2.70001,0c0.89999,0 1.7,0 2.59999,0c0.90001,0 1.8,0 2.7,0c0.90001,0 1.8,0 2.70001,0c0.89999,0 1.7,0 2.59999,0c0.90001,0 1.8,0 2.7,0c0.90001,0 1.80165,0.05437 2.70001,-0.00017c0.70386,-0.04272 1.46399,-0.6105 1.89999,-1.479l0.57466,-0.54616"
         .attr pencil_options
         .hide()
+        @gp.scale 0.75
 
-
-    ActNatural: () ->
+    ActNatural: (forever) ->
+        @in_motion = true
         actions = [
-            => @Blink()
-            => @TwitchEars()
-            => @Walk()
-            => @TwitchTail()
+            (callback) => @Blink callback
+            (callback) => @TwitchTail callback
+            (callback) => @Blink callback
+            (callback) => @TwitchEars callback
+            (callback) => @Walk callback
+            (callback) => @TwitchTail callback
+            (callback) => @Blink callback
+            (callback) => @TwitchEars callback
+            (callback) => @Blink callback
+            (callback) => @TwitchTail callback
         ]
-        return actions[Math.floor (Math.random() * actions.length)]()
+        if forever? and forever == true
+            @keep_moving = true
+        actions[Math.floor (Math.random() * actions.length)] =>
+            @in_motion = false
+        if @keep_moving
+            _f = =>
+                @ActNatural()
+            setTimeout _f, Math.random() * 1000 + 750
 
+    Stop: ->
+        @keep_moving = false
 
-    Blink: () ->
+    Blink: (callback) ->
         @right_eye_closed.show()
         @left_eye_closed.show()
         @right_eye.hide()
         @left_eye.hide()
         _fn = =>
-            @Unblink()
-        setTimeout _fn, 200
+            @Unblink(callback)
+        setTimeout _fn, @blink_speed
 
-    Unblink: () ->
+    Unblink: (callback) ->
         @right_eye_closed.hide()
         @left_eye_closed.hide()
         @right_eye.show()
         @left_eye.show()
+        return callback?()
 
-    TwitchEars: () ->
+    TwitchEars: (callback) ->
         dir = if Math.random() < 0.5 then -1 else 1
         @TwitchEar @left_ear, dir
-        @TwitchEar @right_ear, -1 * dir
+        @TwitchEar @right_ear, -1 * dir, callback
 
-    TwitchEar: (e,dir) ->
+    TwitchEar: (e,dir,callback) ->
         if not e?
             e = if Math.random() < 0.5 then @left_ear else @right_ear
         if not dir?
             dir = if Math.random()<0.5 then 1 else -1
-        e.animate 250
+        e.animate @ear_twitch_speed
         .rotate (dir * 10),200,100
-        .after ->
-            e.animate 200, '-' #-: linear, <>: ease in/out, =: external, or a function for easing
+        .after =>
+            e.animate @ear_twitch_speed, '-' #-: linear, <>: ease in/out, =: external, or a function for easing
             .rotate 0,200,100
+            .after ->
+                return callback?()
 
-    TwitchTail: () ->
+    TwitchTail: (callback) ->
         @tail.animate 150
         .rotate if Math.random() < 0.5 then 10 else -10
         .after =>
-            @tail.animate 150, '-'
+            @tail.animate @tail_twitch_speed, '-'
             .rotate 0
+            .after ->
+                return callback?()
+
+    Walk: (callback) ->
+        x = Math.random() * window.innerWidth
+        y = Math.random() * window.innerHeight
+        d = Math.sqrt (x - @gp.cx())*(x - @gp.cx())+(y - @gp.cy())*(y - @gp.cy())
+        duration = 1000 * d * 1.0 / @pixels_per_second
+        return @WalkTo x, y, duration, callback
 
     #walks to the given position
     #treat like center = (x,y)
-    Walk: (x,y,duration) ->
+    WalkTo: (x,y,duration,callback) ->
         if not x? or not y?
             x = Math.random() * window.innerWidth
             y = Math.random() * window.innerHeight
@@ -130,18 +167,20 @@ class Bunny
         #console.log "moving to #{x}, #{y} time taken: #{d}"
         @gp.animate duration
         .dmove x - @gp.cx(), y - @gp.cy()
+        .after ->
+            return callback?()
         @Run duration
 
-    Run: (duration) ->
+    Run: (duration,callback) ->
         if not duration?
             duration = 1000
         i = parseInt(@leg_actions_per_second * duration * 1.0 / 1000)
         leg_speed = 1000 * 1.0 / @leg_actions_per_second
-        @_run1 i,leg_speed/2
+        @_run1 i,leg_speed/2, callback
 
-    _run1: (i,leg_speed) ->
+    _run1: (i,leg_speed,callback) ->
         if i <= 0
-            return
+            return callback?()
         @front_left_leg.animate leg_speed, '-'
         .rotate 20
         @front_right_leg.animate leg_speed, '-'
@@ -151,11 +190,11 @@ class Bunny
         @back_right_leg.animate leg_speed, '-'
         .rotate -20
         .after =>
-            @_run2 i,leg_speed
+            @_run2 i,leg_speed, callback
 
-    _run2: (i,leg_speed) ->
+    _run2: (i,leg_speed,callback) ->
         if i <= 0
-            return
+            return callback?()
         @front_left_leg.animate leg_speed, '-'
         .rotate 0
         @front_right_leg.animate leg_speed, '-'
@@ -165,6 +204,6 @@ class Bunny
         @back_right_leg.animate leg_speed, '-'
         .rotate 0
         .after =>
-            @_run1 i-1,leg_speed
+            @_run1 i-1,leg_speed, callback
 
 module.exports = Bunny

@@ -1,6 +1,4 @@
 window.$ = require('jquery')
-console.log window.$
-
 
 class ScreenManager
 
@@ -14,8 +12,6 @@ class ScreenManager
 
 	Current: ->
 		return @name
-
-
 
 
 module.exports = new ScreenManager()

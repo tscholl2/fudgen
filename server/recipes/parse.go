@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"../units"
 	"gopkg.in/yaml.v2"
@@ -23,6 +22,11 @@ type Operation struct {
 //IsIngrediant returns false for operations
 func (s *Operation) IsIngrediant() bool {
 	return false
+}
+
+//getId returns ID of this operation
+func (s *Operation) getID() int {
+	return s.ID
 }
 
 //MarshalJSON returns this operation as json
@@ -44,6 +48,11 @@ func (s *Ingrediant) IsIngrediant() bool {
 	return true
 }
 
+//getId returns ID of this operation
+func (s *Ingrediant) getID() int {
+	return s.ID
+}
+
 //MarshalJSON returns ingrediant as json
 func (s *Ingrediant) MarshalJSON() ([]byte, error) {
 	return json.Marshal(*s)
@@ -56,11 +65,13 @@ type Recipe struct {
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:"price"`
+	Servings  float64                   `json:"serv"`
 }
 
 //Step interface. just says what it can be cast to
 type Step interface {
 	IsIngrediant() bool
+	getID() int
 	MarshalJSON() ([]byte, error)
 }
 
@@ -138,8 +149,7 @@ func preRecipe2Steps(pr *preRecipe) (steps []Step, err error) {
 //with a random name
 func steps2recipe(steps []Step) (R *Recipe, err error) {
 	//initialize output
-	r := Recipe{}
-	R = &r
+	R = &Recipe{}
 
 	//copy steps into recipe
 	R.Steps = make([]Step, len(steps))
@@ -147,9 +157,6 @@ func steps2recipe(steps []Step) (R *Recipe, err error) {
 
 	//initialize nutrition map
 	R.Nutrition = make(map[string]units.Quantity)
-
-	//keep track of names for title creation
-	names := []string{}
 
 	//find ingrediants and fill in
 	for i := 0; i < len(R.Steps) && err == nil; i++ {
@@ -182,24 +189,12 @@ func steps2recipe(steps []Step) (R *Recipe, err error) {
 				R.Price += x
 			}
 
-			//add name to list
-			for _, n := range strings.Fields(ing.Name) {
-				names = append(names, n)
-			}
-
 			//set measurement
 			ing.Measurement = measurement
 			ing.Data = data
 
 			//replace old step
 			R.Steps[i] = ing
-		} else {
-			op := s.(*Operation)
-
-			//add name to list
-			for _, n := range strings.Fields(op.Name) {
-				names = append(names, n)
-			}
 		}
 	}
 	if err != nil {

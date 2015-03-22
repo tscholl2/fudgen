@@ -116,7 +116,7 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 	var GmWgt float64
 	row := db.QueryRow(sqlCmd, ndbNo)
 	err = row.Scan(&MsreDesc, &Amount, &GmWgt)
-	if MsreDesc == "" {
+	if MsreDesc == "" || Amount == 0 {
 		err = fmt.Errorf("[Q] No weight found for %s", ndbNo)
 	}
 	if err != nil {
@@ -125,6 +125,7 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 
 	//calculate nutrition
 	var grams float64 //the number of grams in the ingrediant total
+
 	//check if we can convert given_amount to grams
 	//if so then we can just go with it
 	if givenAmount.Type == "mass" || givenAmount.Type == "volume" {
@@ -170,8 +171,10 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 		//calculate nutritional density * amount of ingrediant, see pg 26 of sr27_doc.pdf
 		nutrition[nutrDesc] = units.Quantity{Unit: u, Amount: nutrVal * grams * 1.0 / 100}
 	}
+	//store total weight
 	nutrition["Gm_Wgt"] = units.Quantity{Unit: "gram", Amount: grams, Type: "mass"}
-
+	//store # of servings for this thing
+	nutrition["servings"] = units.Quantity{Unit: "serving", Amount: grams / GmWgt}
 	return
 }
 

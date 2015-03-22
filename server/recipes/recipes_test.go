@@ -114,27 +114,14 @@ func TestPrint(t *testing.T) {
 }
 
 func TestRand(t *testing.T) {
-	fmt.Println("Testing random prerec...")
-	pr, err := randomPreRecipe(RandomParameters{})
-	check(t, err, nil)
-	fmt.Println(pr)
-	pr, err = randomPreRecipe(RandomParameters{})
-	check(t, err, nil)
-	fmt.Println(pr)
-	pr, err = randomPreRecipe(RandomParameters{})
-	check(t, err, nil)
-	fmt.Println(pr)
-
 	fmt.Println("Testing random rec...")
-	_, err = randomRecipe(RandomParameters{})
-	//fmt.Println(r)
+	r, err := randomRecipe(RandomParameters{})
 	check(t, err, nil)
-	_, err = randomRecipe(RandomParameters{})
-	check(t, err, nil)
-	//fmt.Println(r)
-	_, err = randomRecipe(RandomParameters{})
-	check(t, err, nil)
-	//fmt.Println(r)
+	fmt.Println(r)
+	fmt.Println("-----RANDOMREC STEPS:----------")
+	for _, s := range r.Steps {
+		fmt.Println(s)
+	}
 }
 
 func TestSchedule(t *testing.T) {

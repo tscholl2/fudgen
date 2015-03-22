@@ -250,6 +250,7 @@ func randomRecipe(options RandomParameters) (r *Recipe, err error) {
 		op.Time = units.Quantity{Amount: rand.Float64()*(preOp.ETA[1]-preOp.ETA[0]) + preOp.ETA[0], Unit: "minute", Type: "time"}
 
 		//look for possible prereqs
+		//TODO: FINISH THIS!
 		//
 		//op.Requires????
 		//

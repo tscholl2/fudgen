@@ -10,19 +10,18 @@ recipe_data = EXAMPLE
 window.r = EXAMPLE
 console.log r
 
-Schedule = Backbone.Model.extend
-    defaults:
-        schedule = [[0,120],[2,240]]
+ScheduleModel = Backbone.Model.extend
+    initialize: ->
+        console.log "scheudle model created"
+        @on "change:data", ->
+            console.log "data changed"
 
 ScheduleView = Backbone.View.extend
-    render: ->
+    initialize: ->
+
+        #keep working on this, see
+        #http://www.codeproject.com/Articles/801863/BackBone-Tutorial-Part-Understanding-Backbone-js-V
 
 
-Steps = Backbone.Model.extend()
-
-Nutrition = Backbone.Model.extend()
-
-Recipe = Backbone.Model.extend()
-
-schedule_view = new ScheduleView
-    el: $ "#schedule_container"
+window.s = new ScheduleModel
+    data: [[0,120],[2,240]]

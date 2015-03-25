@@ -146,7 +146,7 @@ class PriceView extends Backbone.View
     initialize: ->
         @listenTo @model, "change:price", @render
     render: ->
-        output = "<hr style='border-top:1px solid #666;'><h2>Price: $#{Math.round(@model.get('price') * 100) / 100}</h2>"
+        output = "<hr style='border-top:1px solid #666;'><h2>Price $#{Math.round(@model.get('price') * 100) / 100}</h2>"
         @$el.html output
 price_view = new PriceView()
 

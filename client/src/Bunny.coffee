@@ -5,7 +5,7 @@ window.SV = SVG
 class Bunny
     constructor: (@dom_svg_element) ->
         #variable for speed, about ~ number of leg movements/second
-        @leg_actions_per_second = 1.18
+        @leg_actions_per_second = 1.08
         #movment, about ~ 1px / second
         @pixels_per_second = 30.14
         #time for blink in ms
@@ -152,8 +152,8 @@ class Bunny
     Walk: (callback) ->
         if @walking
             return callback?()
-        x = Math.random() * window.innerWidth
-        y = Math.random() * window.innerHeight
+        x = Math.random() * document.getElementById("main-screen").scrollHeight
+        y = Math.random() *document.getElementById("main-screen").scrollWidth
         d = Math.sqrt (x - @gp.cx())*(x - @gp.cx())+(y - @gp.cy())*(y - @gp.cy())
         duration = 1000 * d * 1.0 / @pixels_per_second
         return @WalkTo x, y, duration, callback

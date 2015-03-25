@@ -6,7 +6,7 @@
 #main-screen {
     height: 100%;
 	width: 100%;
-    background-color: #B8CBBC;
+    background-color: #BDCDBE;
 	position: fixed;
     overflow: auto;
 }
@@ -16,4 +16,11 @@
 	width: 100%;
     position: absolute;
     z-index: 999;
+    pointer-events: none;
+}
+
+.table tbody tr:hover td,
+.table tbody tr:hover th {
+    background-color: #F1F5CD;
+    cursor: pointer;
 }

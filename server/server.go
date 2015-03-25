@@ -19,9 +19,11 @@ type message struct {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fmt.Fprintf(w, "Hello Web")
 	})
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		m := getRandomRecipe()
 		bytes, err := json.Marshal(m)
 		if err != nil {
@@ -29,7 +31,7 @@ func main() {
 		}
 		w.Write(bytes)
 	})
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8890", nil)
 }
 
 func getRandomRecipe() (m message) {

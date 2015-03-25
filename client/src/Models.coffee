@@ -1,27 +1,226 @@
-window.$ = require 'jquery'
-window._ = require 'underscore'
-
 Backbone = require 'backbone'
+Backbone.$ = require 'jquery'
+Backbone._ = require 'underscore'
 
-EXAMPLE = JSON.parse '{"error":"","recipe":{"steps":[{"name":"Step 0","desc":"smash","id":0,"time":{"unit":"minute","amount":5,"Type":"time"},"reqs":[1],"notes":""},{"name":"Step 1","desc":"grill","id":1,"time":{"unit":"minute","amount":10,"Type":"time"},"reqs":[2,6],"notes":""},{"name":"Step 2","desc":"slice","id":2,"time":{"unit":"minute","amount":1,"Type":"time"},"reqs":[3,4,5],"notes":""},{"name":"Blood sausage","id":3,"data":{"Com_Desc":"Blood sausage","Long_Desc":"Blood sausage","ManufacName":"","NDB_No":"07005","Shrt_Desc":"BLOOD SAUSAGE","price":"0.276078"},"quant":{"unit":"slices","amount":21.377796,"Type":""},"notes":""},{"name":"Chocolate","id":4,"data":{"Com_Desc":"Chocolate","Long_Desc":"Candies, milk chocolate","ManufacName":"","NDB_No":"19120","Shrt_Desc":"CANDIES,MILK CHOC","price":"0.033870"},"quant":{"unit":"bar, miniature","amount":1.116377,"Type":""},"notes":""},{"name":"Raspberry","id":5,"data":{"Com_Desc":"Raspberry","Long_Desc":"Raspberries, raw","ManufacName":"","NDB_No":"09302","Shrt_Desc":"RASPBERRIES,RAW","price":"0.312043"},"quant":{"unit":"pint as purchased, yields","amount":10.231913,"Type":""},"notes":""},{"name":"Step 6","desc":"slice","id":6,"time":{"unit":"minute","amount":1,"Type":"time"},"reqs":[7,8,9],"notes":""},{"name":"Watercress","id":7,"data":{"Com_Desc":"Watercress","Long_Desc":"Watercress, raw","ManufacName":"","NDB_No":"11591","Shrt_Desc":"WATERCRESS,RAW","price":"0.002981"},"quant":{"unit":"sprigs","amount":11.16393,"Type":""},"notes":""},{"name":"Salsa","id":8,"data":{"Com_Desc":"Salsa","Long_Desc":"Sauce, salsa, ready-to-serve","ManufacName":"","NDB_No":"06164","Shrt_Desc":"SAUCE,SALSA,RTS","price":"9.332873"},"quant":{"unit":"cup","amount":1.690716,"Type":"volume"},"notes":""},{"name":"Fish sauce","id":9,"data":{"Com_Desc":"Fish sauce","Long_Desc":"Sauce, fish, ready-to-serve","ManufacName":"","NDB_No":"06179","Shrt_Desc":"SAUCE,FISH,READY-TO-SERVE","price":"0.040324"},"quant":{"unit":"tbsp","amount":1.831669,"Type":""},"notes":""}],"title":"untited","nutr":{"10:0":{"unit":"g","amount":0.019224011939999997,"Type":""},"12:0":{"unit":"g","amount":0.66118306306,"Type":""},"13:0":{"unit":"g","amount":0,"Type":""},"14:0":{"unit":"g","amount":13.351088577350078,"Type":""},"14:1":{"unit":"g","amount":0,"Type":""},"15:0":{"unit":"g","amount":0,"Type":""},"15:1":{"unit":"g","amount":0,"Type":""},"16:0":{"unit":"g","amount":178.75291358460177,"Type":""},"16:1 undifferentiated":{"unit":"g","amount":18.85417775732008,"Type":""},"17:0":{"unit":"g","amount":0.00101590307,"Type":""},"17:1":{"unit":"g","amount":0,"Type":""},"18:0":{"unit":"g","amount":95.04883258122048,"Type":""},"18:1 c":{"unit":"g","amount":0.47481746564,"Type":""},"18:1 t":{"unit":"g","amount":0,"Type":""},"18:1 undifferentiated":{"unit":"g","amount":323.14232438535197,"Type":""},"18:2 undifferentiated":{"unit":"g","amount":76.92259326199873,"Type":""},"18:3 n-3 c,c,c (ALA)":{"unit":"g","amount":0.00953385958,"Type":""},"18:3 n-6 c,c,c":{"unit":"g","amount":0,"Type":""},"18:3 undifferentiated":{"unit":"g","amount":9.674323211490401,"Type":""},"18:4":{"unit":"g","amount":0,"Type":""},"20:0":{"unit":"g","amount":0.005548393689999999,"Type":""},"20:1":{"unit":"g","amount":0.15961784280000002,"Type":""},"20:2 n-6 c,c":{"unit":"g","amount":0,"Type":""},"20:3 undifferentiated":{"unit":"g","amount":0,"Type":""},"20:4 undifferentiated":{"unit":"g","amount":0,"Type":""},"20:5 n-3 (EPA)":{"unit":"g","amount":0.00032970042,"Type":""},"22:0":{"unit":"g","amount":0.00054702473,"Type":""},"22:1 undifferentiated":{"unit":"g","amount":0,"Type":""},"22:5 n-3 (DPA)":{"unit":"g","amount":0,"Type":""},"22:6 n-3 (DHA)":{"unit":"g","amount":0.00065940084,"Type":""},"24:0":{"unit":"g","amount":0,"Type":""},"24:1 c":{"unit":"g","amount":0,"Type":""},"4:0":{"unit":"g","amount":0.027976407619999998,"Type":""},"6:0":{"unit":"g","amount":0.0077364926099999995,"Type":""},"8:0":{"unit":"g","amount":0.00867424929,"Type":""},"Alanine":{"unit":"g","amount":22.829050402500002,"Type":""},"Alcohol, ethyl":{"unit":"g","amount":0,"Type":""},"Arginine":{"unit":"g","amount":14.955548655000001,"Type":""},"Ash":{"unit":"g","amount":83.7824468606912,"Type":""},"Aspartic acid":{"unit":"g","amount":29.381938327500002,"Type":""},"Beta-sitosterol":{"unit":"mg","amount":2.89141643,"Type":""},"Betaine":{"unit":"mg","amount":89.573317576336,"Type":""},"Caffeine":{"unit":"mg","amount":1.5629278,"Type":""},"Calcium, Ca":{"unit":"mg","amount":1410.2216108724003,"Type":""},"Campesterol":{"unit":"mg","amount":0.46887834,"Type":""},"Carbohydrate, by difference":{"unit":"g","amount":445.06734742913767,"Type":""},"Carotene, alpha":{"unit":"µg","amount":510.77709696000005,"Type":""},"Carotene, beta":{"unit":"µg","amount":6877.032304703041,"Type":""},"Cholesterol":{"unit":"mg","amount":2567.1328869699996,"Type":""},"Choline, total":{"unit":"mg","amount":2033.2372776880238,"Type":""},"Copper, Cu":{"unit":"mg","amount":4.265995649785361,"Type":""},"Cryptoxanthin, beta":{"unit":"µg","amount":0,"Type":""},"Cystine":{"unit":"g","amount":3.8675401575,"Type":""},"Dihydrophylloquinone":{"unit":"µg","amount":0,"Type":""},"Energy":{"unit":"kJ","amount":41725.10897347976,"Type":""},"Fatty acids, total monounsaturated":{"unit":"g","amount":342.63461278647196,"Type":""},"Fatty acids, total polyunsaturated":{"unit":"g","amount":86.60471887595921,"Type":""},"Fatty acids, total saturated":{"unit":"g","amount":288.7117722990124,"Type":""},"Fiber, total dietary":{"unit":"g","amount":216.364440722144,"Type":""},"Fluoride, F":{"unit":"µg","amount":0.39073195,"Type":""},"Folate, DFE":{"unit":"µg","amount":836.0772186503202,"Type":""},"Folate, food":{"unit":"µg","amount":836.0772186503202,"Type":""},"Folate, total":{"unit":"µg","amount":836.1553650403201,"Type":""},"Folic acid":{"unit":"µg","amount":0,"Type":""},"Fructose":{"unit":"g","amount":83.50045219656961,"Type":""},"Galactose":{"unit":"g","amount":0,"Type":""},"Glucose (dextrose)":{"unit":"g","amount":65.73788708202721,"Type":""},"Glutamic acid":{"unit":"g","amount":45.851214195,"Type":""},"Glycine":{"unit":"g","amount":19.7663844,"Type":""},"Gm_Wgt":{"unit":"gram","amount":6050.022504008,"Type":"mass"},"Histidine":{"unit":"g","amount":15.28987446,"Type":""},"Iron, Fe":{"unit":"mg","amount":161.44417601853203,"Type":""},"Isoleucine":{"unit":"g","amount":7.1004560925,"Type":""},"Lactose":{"unit":"g","amount":0,"Type":""},"Leucine":{"unit":"g","amount":30.178439534999995,"Type":""},"Lutein + zeaxanthin":{"unit":"µg","amount":21281.67685688688,"Type":""},"Lycopene":{"unit":"µg","amount":25248.19674554496,"Type":""},"Lysine":{"unit":"g","amount":22.820677455000002,"Type":""},"Magnesium, Mg":{"unit":"mg","amount":1054.5727724412002,"Type":""},"Maltose":{"unit":"g","amount":0,"Type":""},"Manganese, Mn":{"unit":"mg","amount":22.849199294969043,"Type":""},"Methionine":{"unit":"g","amount":4.33137885,"Type":""},"Niacin":{"unit":"mg","amount":50.5746421873696,"Type":""},"Pantothenic acid":{"unit":"mg","amount":25.07853227323616,"Type":""},"Phenylalanine":{"unit":"g","amount":17.847964725,"Type":""},"Phosphorus, P":{"unit":"mg","amount":1718.11736208272,"Type":""},"Phytosterols":{"unit":"mg","amount":0,"Type":""},"Potassium, K":{"unit":"mg","amount":7817.872387072801,"Type":""},"Proline":{"unit":"g","amount":21.64573032,"Type":""},"Protein":{"unit":"g","amount":365.26951563262315,"Type":""},"Retinol":{"unit":"µg","amount":5.92943869,"Type":""},"Riboflavin":{"unit":"mg","amount":4.49720853088256,"Type":""},"Selenium, Se":{"unit":"µg","amount":347.204396592072,"Type":""},"Serine":{"unit":"g","amount":14.70436023,"Type":""},"Sodium, Na":{"unit":"mg","amount":20097.928668196397,"Type":""},"Starch":{"unit":"g","amount":0,"Type":""},"Stigmasterol":{"unit":"mg","amount":1.25034224,"Type":""},"Sucrose":{"unit":"g","amount":35.0958556811184,"Type":""},"Sugars, total":{"unit":"g","amount":190.22249779911525,"Type":""},"Theobromine":{"unit":"mg","amount":16.02000995,"Type":""},"Thiamin":{"unit":"mg","amount":2.9218982305928,"Type":""},"Threonine":{"unit":"g","amount":12.5565443925,"Type":""},"Tocopherol, beta":{"unit":"mg","amount":2.0354150487024,"Type":""},"Tocopherol, delta":{"unit":"mg","amount":33.2005113024,"Type":""},"Tocopherol, gamma":{"unit":"mg","amount":45.96336639781121,"Type":""},"Tocotrienol, alpha":{"unit":"mg","amount":0,"Type":""},"Tocotrienol, beta":{"unit":"mg","amount":1.7200134031344,"Type":""},"Tocotrienol, delta":{"unit":"mg","amount":0.0400003117008,"Type":""},"Tocotrienol, gamma":{"unit":"mg","amount":0,"Type":""},"Total lipid (fat)":{"unit":"g","amount":761.5645040445135,"Type":""},"Tryptophan":{"unit":"g","amount":3.931732755,"Type":""},"Tyrosine":{"unit":"g","amount":7.4442825375,"Type":""},"Valine":{"unit":"g","amount":22.1877165225,"Type":""},"Vitamin A, IU":{"unit":"IU","amount":11898.712832708401,"Type":""},"Vitamin A, RAE":{"unit":"µg","amount":612.3345238919201,"Type":""},"Vitamin B-12":{"unit":"µg","amount":21.5946619941,"Type":""},"Vitamin B-12, added":{"unit":"µg","amount":0,"Type":""},"Vitamin B-6":{"unit":"mg","amount":3.8083249755940805,"Type":""},"Vitamin C, total ascorbic acid":{"unit":"mg","amount":964.1746532051523,"Type":""},"Vitamin D":{"unit":"IU","amount":1111.645392,"Type":""},"Vitamin D (D2 + D3)":{"unit":"µg","amount":27.7911348,"Type":""},"Vitamin E (alpha-tocopherol)":{"unit":"mg","amount":38.2634933135976,"Type":""},"Vitamin E, added":{"unit":"mg","amount":0,"Type":""},"Vitamin K (phylloquinone)":{"unit":"µg","amount":963.995025105336,"Type":""},"Water":{"unit":"g","amount":4394.337908577135,"Type":""},"Zinc, Zn":{"unit":"mg","amount":42.5117243735152,"Type":""}},"price":9.998168999999999},"sched":[[[2,60],[1,600],[0,300]],[[6,60],[-1,900]]]}'
+sample_recipe = '
+{
+    "error":"",
+    "recipe":
+    {
+        "steps":[
+            {"name":"grilled cheese","op":"grill","id":0,"time":{"u":"minute","a":10},"reqs":[1,2],"notes":"flip at some point"},
+            {"name":"butter","id":1,"data":{"Com_Desc":"Unsalted Butter","Long_Desc":"Margarine-like, butter-margarine blend, 80% fat, stick, without salt","ManufacName":"","NDB_No":"42307","Shrt_Desc":"MARGARINE-LIKE,BUTTER-MARGARINE BLEND,80% FAT,STK,WO/ SALT","price":"0.095234"},"quant":{"u":"tablespoon","a":0.25},"notes":""},
+            {"name":"sandwich","op":"layer","id":2,"time":{"u":"minute","a":2},"reqs":[3,4],"notes":""},
+            {"name":"bread","id":3,"data":{"Com_Desc":"Breadfruit","Long_Desc":"Breadfruit, raw","ManufacName":"","NDB_No":"09059","Shrt_Desc":"BREADFRUIT,RAW","price":"0.056504"},"quant":{"u":"fruit, small","a":0.5},"notes":"use whole wheat"},
+            {"name":"cheese","id":4,"data":{"Com_Desc":"Oaxaca cheese","Long_Desc":"Cheese, mexican, queso asadero","ManufacName":"","NDB_No":"01166","Shrt_Desc":"CHEESE,MEXICAN,QUESO ASADERO","price":"0.055248"},"quant":{"u":"cubic inch","a":3},"notes":""}
+        ],
+        "title":"untited",
+        "nutr":{"10:0":{"u":"g","a":0.30752855},"12:0":{"u":"g","a":0.28564591},"14:0":{"u":"g","a":1.706428349},"16:0":{"u":"g","a":5.264841404},"16:1 undifferentiated":{"u":"g","a":0.5095547939999999},"18:0":{"u":"g","a":2.225949786},"18:1 undifferentiated":{"u":"g","a":5.010045224},"18:2 undifferentiated":{"u":"g","a":0.93634537},"18:3 undifferentiated":{"u":"g","a":0.22792484200000002},"18:4":{"u":"g","a":0},"20:1":{"u":"g","a":0},"20:4 undifferentiated":{"u":"g","a":0},"20:5 n-3 (EPA)":{"u":"g","a":0},"22:1 undifferentiated":{"u":"g","a":0},"22:5 n-3 (DPA)":{"u":"g","a":0},"22:6 n-3 (DHA)":{"u":"g","a":0},"4:0":{"u":"g","a":0.492826214},"6:0":{"u":"g","a":0.259826533},"8:0":{"u":"g","a":0.14086043},"Alanine":{"u":"g","a":0.27054},"Alcohol, ethyl":{"u":"g","a":0},"Arginine":{"u":"g","a":0.4104},"Ash":{"u":"g","a":2.7397340000000003},"Aspartic acid":{"u":"g","a":0.7965000000000001},"Caffeine":{"u":"mg","a":0},"Calcium, Ca":{"u":"mg","a":366.135076},"Carbohydrate, by difference":{"u":"g","a":14.5895802},"Carotene, alpha":{"u":"µg","a":0},"Carotene, beta":{"u":"µg","a":24.709870000000002},"Cholesterol":{"u":"mg","a":59.953096},"Choline, total":{"u":"mg","a":13.574505000000002},"Copper, Cu":{"u":"mg","a":0.054544835},"Cryptoxanthin, beta":{"u":"µg","a":0},"Cystine":{"u":"g","a":0.05993999999999999},"Energy":{"u":"kJ","a":1122.5288679999999},"Fatty acids, total monounsaturated":{"u":"g","a":5.533573544000001},"Fatty acids, total polyunsaturated":{"u":"g","a":1.164810212},"Fatty acids, total saturated":{"u":"g","a":10.704660168},"Fiber, total dietary":{"u":"g","a":2.3520000000000003},"Folate, DFE":{"u":"µg","a":11.113934},"Folate, food":{"u":"µg","a":11.113934},"Folate, total":{"u":"µg","a":11.113934},"Folic acid":{"u":"µg","a":0},"Glutamic acid":{"u":"g","a":2.73888},"Glycine":{"u":"g","a":0.13283999999999999},"Gm_Wgt":{"u":"gram","a":105.69669999999999},"Histidine":{"u":"g","a":0.37476},"Iron, Fe":{"u":"mg","a":0.5379270300000001},"Isoleucine":{"u":"g","a":0.6922200000000001},"Leucine":{"u":"g","a":1.17762},"Lutein + zeaxanthin":{"u":"µg","a":10.56},"Lycopene":{"u":"µg","a":0},"Lysine":{"u":"g","a":0.85368},"Magnesium, Mg":{"u":"mg","a":26.113934},"Manganese, Mn":{"u":"mg","a":0.04824},"Methionine":{"u":"g","a":0.32502000000000003},"Niacin":{"u":"mg","a":0.5308490100000001},"Pantothenic acid":{"u":"mg","a":0.3441},"Phenylalanine":{"u":"g","a":0.65508},"Phosphorus, P":{"u":"mg","a":254.470241},"Potassium, K":{"u":"mg","a":283.007779},"Proline":{"u":"g","a":1.29762},"Protein":{"u":"g","a":12.7508703},"Retinol":{"u":"µg","a":58.090655999999996},"Riboflavin":{"u":"mg","a":0.13629868},"Selenium, Se":{"u":"µg","a":8.1364835},"Serine":{"u":"g","a":0.63126},"Sodium, Na":{"u":"mg","a":382.695076},"Sugars, total":{"u":"g","a":6.8298000000000005},"Theobromine":{"u":"mg","a":0},"Thiamin":{"u":"mg","a":0.06450967},"Threonine":{"u":"g","a":0.42294},"Total lipid (fat)":{"u":"g","a":18.354036900000004},"Tryptophan":{"u":"g","a":0.14526000000000003},"Tyrosine":{"u":"g","a":0.58206},"Valine":{"u":"g","a":0.7926},"Vitamin A, IU":{"u":"IU","a":234.830959},"Vitamin A, RAE":{"u":"µg","a":59.975972999999996},"Vitamin B-12":{"u":"µg","a":0.5436967},"Vitamin B-12, added":{"u":"µg","a":0},"Vitamin B-6":{"u":"mg","a":0.07698967000000001},"Vitamin C, total ascorbic acid":{"u":"mg","a":13.9236967},"Vitamin D":{"u":"IU","a":11.783604},"Vitamin D (D2 + D3)":{"u":"µg","a":0.2810901},"Vitamin D3 (cholecalciferol)":{"u":"µg","a":0.27},"Vitamin E (alpha-tocopherol)":{"u":"mg","a":0.362435},"Vitamin E, added":{"u":"mg","a":0},"Vitamin K (phylloquinone)":{"u":"µg","a":4.1569603},"Water":{"u":"g","a":57.2624786},"Zinc, Zn":{"u":"mg","a":1.68913934},"servings":{"u":"serving","a":3.76405}},
+        "price":0.20698599999999998
+    },
+    "sched":[[[2,120],[0,600]]]
+}
+'
+window.r = sample_recipe
 
-recipe_data = EXAMPLE
 
-window.r = EXAMPLE
-console.log r
-
-ScheduleModel = Backbone.Model.extend
+class RecipeModel extends Backbone.Model
+    defaults:
+        error: ""
+        schedule: []
+        steps: []
+        title: ""
+        nutrition: {}
     initialize: ->
-        console.log "scheudle model created"
-        @on "change:data", ->
-            console.log "data changed"
+        console.log "recipe model created"
+    parse: (message) ->
+        data = JSON.parse message
+        if (not data?) or (data.error? and data.error != "")
+            @set "error", data.error
+        else
+            console.log "SETTINGS..."
+            @set "title", data.recipe.title
+            @set "steps", data.recipe.steps
+            @set "nutrition", data.recipe.nutr
+            @set "price", data.recipe.price
+            @set "schedule", data.sched
+recipe_model = new RecipeModel()
 
-ScheduleView = Backbone.View.extend
+
+class ScheduleView extends Backbone.View
+    model: recipe_model
+    el: $ "#schedule_container"
     initialize: ->
+        console.log "schedule view created"
+        @listenTo @model, "change:schedule", @render
+    getPerson: (i) ->
+        p = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split ""
+        console.log p
+        return "#{p[i % p.length]}#{if i < p.length then '' else parseInt i / p.length}"
+    render: ->
+        output = "<hr style='border-top:1px solid #666;'><h2>Schedule</h2><div class='row'>"
+        schedule_data = @model.get "schedule"
+        for arr,i in schedule_data
+            output += "<div class='col-lg-3 col-md-6 col-sm-12'><h4>Person #{@getPerson i}</h4><ul class='list-group'>"
+            for job in arr
+                if job[0] == -1
+                    output += "<li class='list-group-item'>Hang out for #{parseInt job[1]/60} minutes.</li>"
+                else
+                    output += "<li class='list-group-item'>Do step #{job[0]} for #{parseInt job[1]/60} minutes.</li>"
+            output += "</ul></div>"
+        output += "</div>"
+        @$el.html output
+schedule_view = new ScheduleView()
 
-        #keep working on this, see
-        #http://www.codeproject.com/Articles/801863/BackBone-Tutorial-Part-Understanding-Backbone-js-V
+# {
+#     "name":"bread",
+#     "id":3,
+#     "data":{
+#         "Com_Desc":"Breadfruit",
+#         "Long_Desc":"Breadfruit, raw",
+#         "ManufacName":"",
+#         "NDB_No":"09059",
+#         "Shrt_Desc":"BREADFRUIT,RAW",
+#         "price":"0.056504"
+#     },
+#     "quant":{"u":"fruit, small","a":0.5},
+#     "notes":"use whole wheat"
+# },
+
+# {
+#     "name":"sandwich",
+#     "op":"layer",
+#     "id":2,
+#     "time":{"u":"minute","a":2},
+#     "reqs":[3,4],
+#     "notes":""
+# },
+
+class StepsView extends Backbone.View
+    model: recipe_model
+    el: $ "#steps_container"
+    initialize: ->
+        @listenTo @model, "change:steps", @render
+    isIngrediant: (o) ->
+        return not o.reqs?
+    render: ->
+        output = "<hr style='border-top:1px solid #666;'><h2>Steps</h2><div class='row'>"
+        step_data = @model.get "steps"
+        output += "<ul class='list-group align-left'>"
+        for s in step_data
+            output += "<li class='list-group-item'>"
+            if @isIngrediant s
+                output += "[#{s.id}] - (#{s.name}): #{s.quant.a} #{s.quant.u} of #{s.data.Long_Desc}."
+            else
+                output += "[#{s.id}] - (#{s.name}): #{s.op} steps #{s.reqs} for #{s.time.a} #{s.time.u}s."
+                if s.notes? and s.notes != ""
+                    output += "Note: #{s.notes}"
+            output += "</li>"
+        output += "</ul>"
+        @$el.html output
+steps_view = new StepsView()
 
 
-window.s = new ScheduleModel
-    data: [[0,120],[2,240]]
+class TitleView extends Backbone.View
+    model: recipe_model
+    el: $ "#title_container"
+    initialize: ->
+        @listenTo @model, "change:title", @render
+    render: ->
+        output = "<h2>#{@model.get 'title'}</h2>"
+        @$el.html output
+title_view = new TitleView()
+
+
+class PriceView extends Backbone.View
+    model: recipe_model
+    el: $ "#price_container"
+    initialize: ->
+        @listenTo @model, "change:price", @render
+    render: ->
+        output = "<hr style='border-top:1px solid #666;'><h2>Price: $#{@model.get 'price'}</h2>"
+        @$el.html output
+price_view = new PriceView()
+
+
+# "nutr":{
+#     "Alanine":{"u":"g","a":0.27054},
+#     "Alcohol, ethyl":{"u":"g","a":0},
+#     "Arginine":{"u":"g","a":0.4104},
+#     "Ash":{"u":"g","a":2.7397340000000003},
+#     "Aspartic acid":{"u":"g","a":0.7965000000000001},
+#     "Caffeine":{"u":"mg","a":0},
+#     "Calcium, Ca":{"u":"mg","a":366.135076},
+#     "Carbohydrate, by difference":{"u":"g","a":14.5895802},
+#     "Carotene, alpha":{"u":"µg","a":0},
+#     "Carotene, beta":{"u":"µg","a":24.709870000000002},
+#     "Cholesterol":{"u":"mg","a":59.953096},
+#     "Choline, total":{"u":"mg","a":13.574505000000002},
+#     "Copper, Cu":{"u":"mg","a":0.054544835},
+#     "Cryptoxanthin, beta":{"u":"µg","a":0},
+#     "Cystine":{"u":"g","a":0.05993999999999999},
+#     "Energy":{"u":"kJ","a":1122.5288679999999},
+#     "Fatty acids, total monounsaturated":{"u":"g","a":5.533573544000001},
+#     "Fatty acids, total polyunsaturated":{"u":"g","a":1.164810212},
+#     "Fatty acids, total saturated":{"u":"g","a":10.704660168},
+#     "Fiber, total dietary":{"u":"g","a":2.3520000000000003},
+#     "Folate, DFE":{"u":"µg","a":11.113934},"Folate, food":{"u":"µg","a":11.113934},
+#     "Folate, total":{"u":"µg","a":11.113934},"Folic acid":{"u":"µg","a":0},
+#     "Glutamic acid":{"u":"g","a":2.73888},"Glycine":{"u":"g","a":0.13283999999999999},
+#     "Gm_Wgt":{"u":"gram","a":105.69669999999999},"Histidine":{"u":"g","a":0.37476},
+#     "Iron, Fe":{"u":"mg","a":0.5379270300000001},"Isoleucine":{"u":"g","a":0.6922200000000001},
+#     "Leucine":{"u":"g","a":1.17762},"Lutein + zeaxanthin":{"u":"µg","a":10.56},
+#     "Lycopene":{"u":"µg","a":0},"Lysine":{"u":"g","a":0.85368},
+#     "Magnesium, Mg":{"u":"mg","a":26.113934},"Manganese, Mn":{"u":"mg","a":0.04824},
+#     "Methionine":{"u":"g","a":0.32502000000000003},"Niacin":{"u":"mg","a":0.5308490100000001},
+#     "Pantothenic acid":{"u":"mg","a":0.3441},"Phenylalanine":{"u":"g","a":0.65508},
+#     "Phosphorus, P":{"u":"mg","a":254.470241},"Potassium, K":{"u":"mg","a":283.007779},
+#     "Proline":{"u":"g","a":1.29762},"Protein":{"u":"g","a":12.7508703},
+#     "Retinol":{"u":"µg","a":58.090655999999996},
+#     "Riboflavin":{"u":"mg","a":0.13629868},
+#     "Selenium, Se":{"u":"µg","a":8.1364835},
+#     "Serine":{"u":"g","a":0.63126},
+#     "Sodium, Na":{"u":"mg","a":382.695076},
+#     "Sugars, total":{"u":"g","a":6.8298000000000005},
+#     "Theobromine":{"u":"mg","a":0},
+#     "Thiamin":{"u":"mg","a":0.06450967},
+#     "Threonine":{"u":"g","a":0.42294},
+#     "Total lipid (fat)":{"u":"g","a":18.354036900000004},
+#     "Tryptophan":{"u":"g","a":0.14526000000000003},
+#     "Tyrosine":{"u":"g","a":0.58206},
+#     "Valine":{"u":"g","a":0.7926},
+#     "Vitamin A, IU":{"u":"IU","a":234.830959},
+#     "Vitamin A, RAE":{"u":"µg","a":59.975972999999996},
+#     "Vitamin B-12":{"u":"µg","a":0.5436967},
+#     "Vitamin B-12, added":{"u":"µg","a":0},
+#     "Vitamin B-6":{"u":"mg","a":0.07698967000000001},
+#     "Vitamin C, total ascorbic acid":{"u":"mg","a":13.9236967},
+#     "Vitamin D":{"u":"IU","a":11.783604},
+#     "Vitamin D (D2 + D3)":{"u":"µg","a":0.2810901},
+#     "Vitamin D3 (cholecalciferol)":{"u":"µg","a":0.27},
+#     "Vitamin E (alpha-tocopherol)":{"u":"mg","a":0.362435},
+#     "Vitamin E, added":{"u":"mg","a":0},
+#     "Vitamin K (phylloquinone)":{"u":"µg","a":4.1569603},
+#     "Water":{"u":"g","a":57.2624786},
+#     "Zinc, Zn":{"u":"mg","a":1.68913934},
+#     "servings":{"u":"serving","a":3.76405}
+# },
+
+class NutrView extends Backbone.View
+    model: recipe_model
+    el: $ "#nutrition_container"
+    initialize: ->
+        @listenTo @model, "change:nutrition", @render
+    render: ->
+        output = "<hr style='border-top:1px solid #666;'><h2>Nutrition</h2><div class='row'>"
+        nutr_data = @model.get "nutrition"
+        output += "<ul class='list-group align-left'>"
+        for k,v of nutr_data
+            output += "<li class='list-group-item'>#{v.a} #{v.u} of #{k}</li>"
+        output += "</ul>"
+        @$el.html output
+nutr_view = new NutrView()
+
+
+
+window.m = recipe_model

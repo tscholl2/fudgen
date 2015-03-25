@@ -17,6 +17,7 @@ class Bunny
         #animating monitor
         @in_motion = false
         @keep_moving = true
+        @walking = false
         #colors for body elements
         @body_color = "#aa00d3"
         @eye_color = "#ffffff"
@@ -149,6 +150,8 @@ class Bunny
                 return callback?()
 
     Walk: (callback) ->
+        if @walking
+            return callback?()
         x = Math.random() * window.innerWidth
         y = Math.random() * window.innerHeight
         d = Math.sqrt (x - @gp.cx())*(x - @gp.cx())+(y - @gp.cy())*(y - @gp.cy())
@@ -168,6 +171,7 @@ class Bunny
         @gp.animate duration
         .dmove x - @gp.cx(), y - @gp.cy()
         .after ->
+            @walking = false
             return callback?()
         @Run duration
 

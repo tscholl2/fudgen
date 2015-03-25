@@ -6,8 +6,8 @@ import (
 )
 
 type Quantity struct {
-	Unit   string  `json:"unit"`
-	Amount float64 `json:"amt"`
+	Unit   string  `json:"u"`
+	Amount float64 `json:"a"`
 	Type   string  `json:"-"`
 }
 

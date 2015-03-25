@@ -244,8 +244,9 @@ func randomRecipe(options RandomParameters) (r *Recipe, err error) {
 		//randomly select and build an operation
 		preOp := operationList[rand.Intn(len(operationList))]
 		op := Operation{}
+		op.Name = "~Name~"
 		op.ID = len(r.Steps)
-		op.Name = preOp.Name
+		op.Operation = preOp.Name
 		op.Notes = preOp.Notes
 		op.Time = units.Quantity{Amount: rand.Float64()*(preOp.ETA[1]-preOp.ETA[0]) + preOp.ETA[0], Unit: "minute", Type: "time"}
 
@@ -258,8 +259,9 @@ func randomRecipe(options RandomParameters) (r *Recipe, err error) {
 		//if can't find prereqs, just mix
 		preOp = operationList[0]
 		op = Operation{}
+		op.Name = "~Name~"
 		op.ID = len(r.Steps)
-		op.Name = preOp.Name
+		op.Operation = preOp.Name
 		op.Notes = preOp.Notes
 		op.Time = units.Quantity{Amount: rand.Float64()*(preOp.ETA[1]-preOp.ETA[0]) + preOp.ETA[0], Unit: "minute", Type: "time"}
 		//grab a few prereqs

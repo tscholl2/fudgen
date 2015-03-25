@@ -10,13 +10,15 @@ import (
 )
 
 // Operation data structure
+// Name = name of the step/outcome eg 'sandwhich'
+// Operation = name of the action eg 'grill'
 type Operation struct {
-	Name        string         `json:"name"`
-	Description string         `json:"desc"`
-	ID          int            `json:"id"`
-	Time        units.Quantity `json:"time"`
-	Requires    []int          `json:"reqs"`
-	Notes       string         `json:"notes"`
+	Name      string         `json:"name"`
+	Operation string         `json:"op"`
+	ID        int            `json:"id"`
+	Time      units.Quantity `json:"time"`
+	Requires  []int          `json:"reqs"`
+	Notes     string         `json:"notes"`
 }
 
 //IsIngrediant returns false for operations
@@ -65,7 +67,6 @@ type Recipe struct {
 	Title     string                    `json:"title"`
 	Nutrition map[string]units.Quantity `json:"nutr"`
 	Price     float64                   `json:"price"`
-	Servings  float64                   `json:"serv"`
 }
 
 //Step interface. just says what it can be cast to
@@ -119,7 +120,7 @@ func preRecipe2Steps(pr *preRecipe) (steps []Step, err error) {
 			o := Operation{}
 			o.ID = pr2.ID
 			o.Name = pr2.Name
-			o.Description = pr2.Operation
+			o.Operation = pr2.Operation
 			o.Notes = pr2.Notes
 			o.Time, err = units.Parse(pr2.Time)
 			for k := 0; k < len(pr2.Ingrediants); k++ {

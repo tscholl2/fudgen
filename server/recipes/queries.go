@@ -152,6 +152,27 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 			join NUTR_DEF on
 				NUTR_DEF.Nutr_No=NUT_DATA.Nutr_No
 			where NUT_DATA.NDB_No=?
+			and NUTR_DEF.NutrDesc in (
+
+"Alanine", "Alcohol, ethyl", "Arginine", "Ash", "Aspartic acid",
+"Caffeine", "Calcium, Ca", "Carbohydrate, by difference",
+"Carotene, alpha", "Carotene, beta", "Cholesterol", "Choline, total",
+"Copper, Cu", "Cryptoxanthin, beta", "Cystine", "Energy",
+"Fatty acids, total monounsaturated", "Fatty acids, total polyunsaturated",
+"Fatty acids, total saturated", "Fiber, total dietary", "Folate, DFE",
+"Folate, food", "Folate, total", "Folic acid", "Glutamic acid", "Glycine",
+"Histidine", "Iron, Fe", "Isoleucine", "Leucine", "Lutein + zeaxanthin",
+"Lycopene", "Lysine", "Magnesium, Mg", "Manganese, Mn", "Methionine",
+"Niacin", "Pantothenic acid", "Phenylalanine", "Phosphorus, P", "Potassium, K",
+"Proline", "Protein", "Retinol", "Riboflavin", "Selenium, Se", "Serine",
+"Sodium, Na", "Sugars, total", "Theobromine", "Thiamin", "Threonine",
+"Total lipid (fat)", "Tryptophan", "Tyrosine", "Valine", "Vitamin A, IU",
+"Vitamin A, RAE", "Vitamin B-12", "Vitamin B-12, added", "Vitamin B-6",
+"Vitamin C, total ascorbic acid", "Vitamin D", "Vitamin D (D2 + D3)",
+"Vitamin D3 (cholecalciferol)", "Vitamin E (alpha-tocopherol)",
+"Vitamin E, added", "Vitamin K (phylloquinone)", "Water", "Zinc, Zn"
+
+				)
 		`
 	rows, err := db.Query(sqlCmd, ndbNo)
 	if err != nil {

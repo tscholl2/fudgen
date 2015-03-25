@@ -38,7 +38,6 @@ class RecipeModel extends Backbone.Model
         if (not data?) or (data.error? and data.error != "")
             @set "error", data.error
         else
-            console.log "SETTINGS..."
             @set "title", data.recipe.title
             @set "steps", data.recipe.steps
             @set "nutrition", data.recipe.nutr
@@ -46,16 +45,23 @@ class RecipeModel extends Backbone.Model
             @set "schedule", data.sched
 recipe_model = new RecipeModel()
 
+class RecipeView extends Backbone.View
+    model: recipe_model
+    el: null
+    initialize: ->
+        @listenTo @model, "change", @resizeSVG
+    resizeSVG: ->
+        Backbone.$ "#main-canvas"
+        .height Backbone.$("#main-screen")[0].scrollHeight
+recipe_view = new RecipeView()
 
 class ScheduleView extends Backbone.View
     model: recipe_model
     el: $ "#schedule_container"
     initialize: ->
-        console.log "schedule view created"
         @listenTo @model, "change:schedule", @render
     getPerson: (i) ->
         p = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split ""
-        console.log p
         return "#{p[i % p.length]}#{if i < p.length then '' else parseInt i / p.length}"
     render: ->
         output = "<hr style='border-top:1px solid #666;'><h2>Schedule</h2><div class='row'>"
@@ -106,7 +112,7 @@ class StepsView extends Backbone.View
     render: ->
         output = "<hr style='border-top:1px solid #666;'><h2>Steps</h2><div class='row'>"
         step_data = @model.get "steps"
-        output += "<ul class='list-group align-left'>"
+        output += "<ul class='list-group'>"
         for s in step_data
             output += "<li class='list-group-item'>"
             if @isIngrediant s
@@ -114,7 +120,7 @@ class StepsView extends Backbone.View
             else
                 output += "[#{s.id}] - (#{s.name}): #{s.op} steps #{s.reqs} for #{s.time.a} #{s.time.u}s."
                 if s.notes? and s.notes != ""
-                    output += "Note: #{s.notes}"
+                    output += " Note: #{s.notes}"
             output += "</li>"
         output += "</ul>"
         @$el.html output

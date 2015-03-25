@@ -111,7 +111,7 @@ func init() {
 }
 
 func randomTitle(R *Recipe) string {
-	return "untited"
+	return "~Untitled~" //TODO - fix title generator
 }
 
 //RandomParameters is just a container

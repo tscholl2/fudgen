@@ -78,11 +78,16 @@ func searchForFood(name string, amount units.Quantity) (measurement units.Quanti
 		if amount.Type != "" {
 			//see findNutrition below, same idea
 			basicQuantity := amount.ToBasic()
-			p = basicQuantity.Amount * price.(float64) //price per gram
+			p = basicQuantity.Amount * price.(float64) //grams * price per gram
 		} else {
-			p = amount.Amount * price.(float64)
+			//see if we stored the total grams
+			gmWgt, ok := nutrition["Gm_Wgt"]
+			if ok {
+				p = gmWgt.Amount * price.(float64)
+			} else { //take a guess by hitting with serving
+				p = amount.Amount * price.(float64)
+			}
 		}
-
 	}
 	data["price"] = fmt.Sprintf("%f", p)
 
@@ -98,34 +103,52 @@ func findNutrition(ndbNo string, givenAmount units.Quantity) (measurement units.
 	}
 	defer db.Close()
 
-	//search for food
+	//search db for the following
+	var MsreDesc string
+	var Amount float64
+	var GmWgt float64
+
+	//search for food with same units
 	sqlCmd := `
 	select
 		Msre_Desc,
 		Amount,
 		Gm_Wgt
-	from
-	(
-		select * from WEIGHT where NDB_No=?
-	)
-	order by random()
+	from WEIGHT
+	where NDB_No=? and Msre_Desc=?
 	limit 1
 	`
-	var MsreDesc string
-	var Amount float64
-	var GmWgt float64
-	row := db.QueryRow(sqlCmd, ndbNo)
+	row := db.QueryRow(sqlCmd, ndbNo, givenAmount.Unit)
 	err = row.Scan(&MsreDesc, &Amount, &GmWgt)
-	if MsreDesc == "" || Amount == 0 {
-		err = fmt.Errorf("[Q] No weight found for %s", ndbNo)
-	}
-	if err != nil {
-		return
+	//if couldn't find with same unit
+	//then search for anything with same ndbno
+	if err == sql.ErrNoRows {
+		//search for food
+		sqlCmd = `
+		select
+			Msre_Desc,
+			Amount,
+			Gm_Wgt
+		from
+		(
+			select * from WEIGHT
+			where NDB_No=?
+		)
+		order by random()
+		limit 1
+		`
+		row := db.QueryRow(sqlCmd, ndbNo)
+		err = row.Scan(&MsreDesc, &Amount, &GmWgt)
+		if MsreDesc == "" || Amount == 0 {
+			err = fmt.Errorf("[Q] No weight found for %s", ndbNo)
+		}
+		if err != nil {
+			return
+		}
 	}
 
 	//calculate nutrition
 	var grams float64 //the number of grams in the ingrediant total
-
 	//check if we can convert given_amount to grams
 	//if so then we can just go with it
 	if givenAmount.Type == "mass" || givenAmount.Type == "volume" {

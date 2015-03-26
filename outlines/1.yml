@@ -1,0 +1,20 @@
+name: grilled cheese
+operation: grill
+time: 10 min
+notes: flip at some point
+ingrediants:
+  -
+    name: butter
+    quantity: 0.25 tbls
+  -
+    name: sandwich
+    operation: layer
+    time: 2 min
+    ingrediants:
+      -
+        name: bread
+        quantity: 2 slices
+        notes: use whole wheat
+      -
+        name: cheese
+        quantity: 3 slices

@@ -1,0 +1,17 @@
+name: spaghetti
+operation: mix
+notes: use a large spoon
+time: 5 min
+ingrediants:
+  -
+    name: pasta
+    operation: boil
+    time: 8 minutes
+    ingrediants:
+      -
+        name: noodles
+        quantity: 4 servings
+        notes: use whole wheat
+  -
+    name: sauce
+    quantity: 15 oz

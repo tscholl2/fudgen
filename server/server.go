@@ -7,6 +7,7 @@ import (
 	//"./units"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	//"io/ioutil"
 	"net/http"
 )
@@ -31,12 +32,12 @@ func main() {
 		}
 		w.Write(bytes)
 	})
-	http.ListenAndServe(":8890", nil)
+	http.ListenAndServe(":18890", nil)
 }
 
 func getRandomRecipe() (m message) {
-
-	b, err := ioutil.ReadFile("../recipes/r3.yml")
+	fileNumber := rand.Intn(2)
+	b, err := ioutil.ReadFile("../outlines/" + fmt.Sprintf("%d", fileNumber) + ".yml")
 	if err != nil {
 		panic(err)
 	}

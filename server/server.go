@@ -32,7 +32,7 @@ func main() {
 		}
 		w.Write(bytes)
 	})
-	http.ListenAndServe(":18890", nil)
+	http.ListenAndServe(":8890", nil)
 }
 
 func getRandomRecipe() (m message) {

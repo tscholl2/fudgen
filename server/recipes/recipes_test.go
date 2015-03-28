@@ -38,7 +38,7 @@ func TestSearch(t *testing.T) {
 	fmt.Println(search(s))
 	fmt.Println(search(s))
 	fmt.Println(search(s))
-	s = "almonds"
+	s = "egg"
 	fmt.Printf("Randomly searching for %s...\n", s)
 	fmt.Println(search(s))
 	fmt.Println(search(s))
@@ -136,4 +136,18 @@ func TestSchedule(t *testing.T) {
 	h, err := optimalSchedule(V, E)
 	check(t, err, nil)
 	fmt.Println(h)
+}
+
+func TestEgg(t *testing.T) {
+	s := "egg"
+	fmt.Printf("Randomly searching for %s...\n", s)
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
+	fmt.Println(search(s))
 }

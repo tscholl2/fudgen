@@ -36,7 +36,7 @@ func main() {
 }
 
 func getRandomRecipe() (m message) {
-	fileNumber := rand.Intn(2)
+	fileNumber := rand.Intn(3)
 	b, err := ioutil.ReadFile("../outlines/" + fmt.Sprintf("%d", fileNumber) + ".yml")
 	if err != nil {
 		panic(err)

@@ -257,8 +257,8 @@ func findFood(food string) (ndbNo string, err error) {
 			from COMMON
 			join RANKING on RANKING.NDB_No=COMMON.NDB_No
 			where COMMON.Com_Desc like ? collate nocase
-			order by RANKING.Shrt_Hits
-			limit 3
+			order by -RANKING.Shrt_Hits
+			limit 5
 		)
 		order by random()
 		limit 1

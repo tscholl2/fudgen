@@ -1,6 +1,7 @@
 package recipes
 
 import (
+	"fmt"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -111,7 +112,31 @@ func init() {
 }
 
 func randomTitle(R *Recipe) string {
-	return "~Untitled~" //TODO - fix title generator
+	randSteps := shuffleSteps(R.Steps)
+	tempOpList := []*Operation{}
+	tempIngList := []*Ingrediant{}
+	for _, s := range randSteps {
+		if s.IsIngrediant() {
+			tempIngList = append(tempIngList, s.(*Ingrediant))
+		} else {
+			tempOpList = append(tempOpList, s.(*Operation))
+		}
+	}
+	//Choose top level operation
+	//note that there MUST be at least one
+	//operation else will return nonsense
+	if len(tempOpList) == 0 {
+		if len(tempIngList) == 0 {
+			return "~Untitled~"
+		}
+		return fmt.Sprintf(tempIngList[0].Name, " with Other Stuff")
+	}
+	if len(tempIngList) == 0 {
+		return "Air"
+	}
+	//otherwise choose a random operation
+	//and a random ingrediant
+	return fmt.Sprintf("%s %s", tempOpList[0].Name, tempIngList[0].Name)
 }
 
 //RandomParameters is just a container

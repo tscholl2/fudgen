@@ -108,15 +108,22 @@ class StepsView extends Backbone.View
                 .html "<th>#{s.id}</th><td>#{s.name}</td><td>#{s.op} steps <b>#{s.reqs}</b> for #{s.time.a} #{s.time.u}s</td>"
                 .data "s", s
                 .click ->
+                    wrap = (label,value) ->
+                        return "<div class='form-group'><label class='col-sm-2 control-label'>#{label}</label><div class='sm-col-10'><p class='form-control-static'>#{value}</p></div></div>"
                     s = $(@).data "s"
                     $ "#myModalLabel"
                     .html "Step #{s.id}"
-                    body = "ID = #{s.id}<br>"
-                    body += "Name = #{s.name}<br>"
-                    body += "Operation = #{s.op}"
-                    body += "Requirements = #{s.reqs}"
-                    body += "Notes = #{s.notes}<br>"
-                    body += "Time = #{s.time.a} #{s.time.u}s<br>"
+                    body = "<form class='form-horizontal'>"
+                    body += wrap "ID", s.id
+                    body += wrap "Name", s.name
+                    if s.notes != ""
+                        body += wrap "Notes", s.notes
+                    body += wrap "Operation", s.op
+                    body += wrap "Requires", s.reqs
+                    body += wrap "Time", "#{s.time.a} #{s.time.u}"
+                    for k,v of s.data
+                        if v !=  ""
+                            body += wrap k, v
                     $ "#myModalBody"
                     .html body
                     $ "#myModal"

@@ -105,7 +105,7 @@ class StepsView extends Backbone.View
                     .modal()
             else
                 $ tr
-                .html "<th>#{s.id}</th><td>#{s.name}</td><td>#{s.op} steps #{s.reqs} for #{s.time.a} #{s.time.u}s</td>"
+                .html "<th>#{s.id}</th><td>#{s.name}</td><td>#{s.op} steps <b>#{s.reqs}</b> for #{s.time.a} #{s.time.u}s</td>"
                 .data "s", s
                 .click ->
                     s = $(@).data "s"

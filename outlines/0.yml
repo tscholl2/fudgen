@@ -1,3 +1,11 @@
+# type PreRecipe struct {
+#   Name        string      //name of food/recipe/step
+#   Operation   string      //name of operation to make this step, nil for ingrediants
+#   Notes       string      //random notes to keep track of
+#   Time        string      //length of step, nil for ingrediants
+#   Servings    float64     //number of servings of ingrediant
+#   Ingrediants []PreRecipe //if empty then this is raw ingrediant
+# }
 name: spaghetti
 operation: mix
 notes: use a large spoon

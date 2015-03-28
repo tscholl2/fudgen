@@ -1,7 +1,0 @@
-spaghetti
-    +mix
-        .5 min
-        -pasta
-            .1 box
-        -sauce
-            .15 oz

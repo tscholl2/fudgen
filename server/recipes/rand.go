@@ -281,14 +281,17 @@ func randomRecipe(options RandomParameters) (r *Recipe, err error) {
 		//op.Requires????
 		//
 
-		//if can't find prereqs, just mix
-		preOp = operationList[0]
-		op = Operation{}
-		op.Name = "~Name~"
-		op.ID = len(r.Steps)
-		op.Operation = preOp.Name
-		op.Notes = preOp.Notes
-		op.Time = units.Quantity{Amount: rand.Float64()*(preOp.ETA[1]-preOp.ETA[0]) + preOp.ETA[0], Unit: "minute", Type: "time"}
+		/*
+			//if can't find prereqs, just mix
+			preOp = operationList[0]
+			op = Operation{}
+			op.Name = "~Name~"
+			op.ID = len(r.Steps)
+			op.Operation = preOp.Name
+			op.Notes = preOp.Notes
+			op.Time = units.Quantity{Amount: rand.Float64()*(preOp.ETA[1]-preOp.ETA[0]) + preOp.ETA[0], Unit: "minute", Type: "time"}
+		*/
+
 		//grab a few prereqs
 		n := rand.Intn(len(stuffToDo)-1) + 2 //at least 2 things
 		op.Requires = make([]int, n)

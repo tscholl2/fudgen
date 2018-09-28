@@ -9,7 +9,7 @@
     "exorcist": "latest",
     "coffeeify": "latest",
     "jquery": "latest",
-    "bootstrap": "3.3.2",
+    "bootstrap": "~>4.1.2",
     "underscore": "latest",
     "font-awesome": "latest",
     "backbone": "latest",
